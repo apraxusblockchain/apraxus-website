@@ -43,9 +43,11 @@ export default function NetworkPage() {
         throw new Error('Network API failed');
       }
 
-      const result = await response.json();
+      const result: NetworkData = await response.json();
+
       setData(result);
-    } catch {
+    } catch (err) {
+      console.error('Apraxus network error:', err);
       setError(true);
     } finally {
       setLoading(false);
@@ -55,7 +57,9 @@ export default function NetworkPage() {
   useEffect(() => {
     loadNetwork();
 
-    const interval = setInterval(loadNetwork, 10000);
+    const interval = setInterval(() => {
+      loadNetwork();
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);
@@ -64,15 +68,35 @@ export default function NetworkPage() {
     return new Intl.NumberFormat('en-US').format(value / 100000000);
   };
 
+  const isOnline =
+    !loading &&
+    !error &&
+    data?.health.status?.toLowerCase() === 'ok';
+
+  const isValid =
+    !loading &&
+    !error &&
+    data?.blockchain.valid === true;
+
   return (
     <div className="min-h-screen bg-[#030305] text-white pt-28 pb-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto flex flex-col gap-12">
 
+        {/* ========================================================= */}
         {/* HEADER */}
+        {/* ========================================================= */}
+
         <div className="max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/40 border border-cyan-500/30 text-xs font-mono text-cyan-300 mb-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Live Network Telemetry
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                isOnline
+                  ? 'bg-emerald-400 animate-pulse'
+                  : 'bg-zinc-500'
+              }`}
+            />
+
+            {isOnline ? 'Live Network Telemetry' : 'Network Telemetry'}
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white mb-4">
@@ -86,12 +110,27 @@ export default function NetworkPage() {
           </p>
         </div>
 
+        {/* ========================================================= */}
         {/* STATUS BAR */}
+        {/* ========================================================= */}
+
         <div className="glass-panel p-6 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-5">
 
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-              <Server className="w-6 h-6 text-emerald-400" />
+            <div
+              className={`w-12 h-12 rounded-xl border flex items-center justify-center ${
+                isOnline
+                  ? 'bg-emerald-500/10 border-emerald-500/20'
+                  : 'bg-white/[0.03] border-white/10'
+              }`}
+            >
+              <Server
+                className={`w-6 h-6 ${
+                  isOnline
+                    ? 'text-emerald-400'
+                    : 'text-zinc-500'
+                }`}
+              />
             </div>
 
             <div>
@@ -104,9 +143,11 @@ export default function NetworkPage() {
               </h2>
 
               <p className="text-xs text-zinc-500 mt-1">
-                {error
-                  ? 'Unable to reach the live network API.'
-                  : 'Connected to the live Apraxus Rust node.'}
+                {loading
+                  ? 'Fetching live network telemetry...'
+                  : error
+                    ? 'Unable to reach the live network API.'
+                    : 'Connected to the live Apraxus Rust node.'}
               </p>
             </div>
           </div>
@@ -114,29 +155,38 @@ export default function NetworkPage() {
           <button
             onClick={loadNetwork}
             disabled={loading}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] transition text-xs font-mono"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] transition text-xs font-mono disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <RefreshCw
-              className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
+              className={`w-4 h-4 ${
+                loading ? 'animate-spin' : ''
+              }`}
             />
-            Refresh
+
+            {loading ? 'Loading...' : 'Refresh'}
           </button>
         </div>
 
+        {/* ========================================================= */}
         {/* LIVE METRICS */}
+        {/* ========================================================= */}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-          {/* BLOCKS */}
+          {/* BLOCK HEIGHT */}
           <div className="glass-panel p-6 rounded-2xl border border-white/10">
             <div className="flex items-center justify-between mb-6">
               <span className="text-[10px] font-mono tracking-widest text-zinc-500">
                 BLOCK HEIGHT
               </span>
+
               <Blocks className="w-5 h-5 text-cyan-400" />
             </div>
 
             <div className="text-3xl font-bold font-mono text-cyan-400">
-              {loading ? '—' : data?.blockchain.blocks ?? '—'}
+              {loading
+                ? '—'
+                : data?.blockchain.blocks ?? '—'}
             </div>
 
             <p className="text-xs text-zinc-500 mt-2">
@@ -144,19 +194,24 @@ export default function NetworkPage() {
             </p>
           </div>
 
-          {/* SUPPLY */}
+          {/* TOTAL SUPPLY */}
           <div className="glass-panel p-6 rounded-2xl border border-white/10">
             <div className="flex items-center justify-between mb-6">
               <span className="text-[10px] font-mono tracking-widest text-zinc-500">
                 TOTAL SUPPLY
               </span>
+
               <Coins className="w-5 h-5 text-purple-400" />
             </div>
 
-            <div className="text-3xl font-bold font-mono text-purple-400">
+            <div className="text-2xl sm:text-3xl font-bold font-mono text-purple-400 break-words">
               {loading
                 ? '—'
-                : `${formatSupply(data?.blockchain.total_supply ?? 0)} APXS`}
+                : data
+                  ? `${formatSupply(
+                      data.blockchain.total_supply
+                    )} APXS`
+                  : '—'}
             </div>
 
             <p className="text-xs text-zinc-500 mt-2">
@@ -164,19 +219,28 @@ export default function NetworkPage() {
             </p>
           </div>
 
-          {/* NETWORK */}
+          {/* NETWORK STATUS */}
           <div className="glass-panel p-6 rounded-2xl border border-white/10">
             <div className="flex items-center justify-between mb-6">
               <span className="text-[10px] font-mono tracking-widest text-zinc-500">
                 NETWORK STATUS
               </span>
+
               <Activity className="w-5 h-5 text-emerald-400" />
             </div>
 
-            <div className="text-3xl font-bold font-mono text-emerald-400">
+            <div
+              className={`text-3xl font-bold font-mono ${
+                isOnline
+                  ? 'text-emerald-400'
+                  : 'text-zinc-500'
+              }`}
+            >
               {loading
                 ? '—'
-                : data?.health.status?.toUpperCase() ?? '—'}
+                : error
+                  ? 'OFFLINE'
+                  : data?.health.status?.toUpperCase() ?? '—'}
             </div>
 
             <p className="text-xs text-zinc-500 mt-2">
@@ -184,27 +248,32 @@ export default function NetworkPage() {
             </p>
           </div>
 
-          {/* VALIDITY */}
+          {/* CHAIN VALIDITY */}
           <div className="glass-panel p-6 rounded-2xl border border-white/10">
             <div className="flex items-center justify-between mb-6">
               <span className="text-[10px] font-mono tracking-widest text-zinc-500">
                 CHAIN VALIDITY
               </span>
+
               <ShieldCheck className="w-5 h-5 text-emerald-400" />
             </div>
 
             <div
               className={`text-3xl font-bold font-mono ${
-                data?.blockchain.valid
+                isValid
                   ? 'text-emerald-400'
-                  : 'text-red-400'
+                  : error
+                    ? 'text-zinc-500'
+                    : 'text-red-400'
               }`}
             >
               {loading
                 ? '—'
-                : data?.blockchain.valid
-                  ? 'VALID'
-                  : 'INVALID'}
+                : error
+                  ? '—'
+                  : data?.blockchain.valid
+                    ? 'VALID'
+                    : 'INVALID'}
             </div>
 
             <p className="text-xs text-zinc-500 mt-2">
@@ -213,10 +282,14 @@ export default function NetworkPage() {
           </div>
         </div>
 
+        {/* ========================================================= */}
         {/* NETWORK DETAILS */}
+        {/* ========================================================= */}
+
         <div className="glass-panel p-8 rounded-2xl border border-white/10">
 
           <div className="flex items-center justify-between border-b border-white/5 pb-5 mb-6">
+
             <div>
               <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
                 Network Details
@@ -227,44 +300,70 @@ export default function NetworkPage() {
               </h2>
             </div>
 
-            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+            {isOnline ? (
+              <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+            ) : (
+              <Server className="w-6 h-6 text-zinc-500" />
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
+            {/* TOKEN */}
             <div className="bg-black/30 p-4 rounded-xl border border-white/5">
               <span className="text-[10px] text-zinc-500 font-mono block mb-2">
                 TOKEN
               </span>
+
               <span className="text-white font-mono">
                 {data?.health.token ?? 'APXS'}
               </span>
             </div>
 
+            {/* MAX SUPPLY */}
             <div className="bg-black/30 p-4 rounded-xl border border-white/5">
               <span className="text-[10px] text-zinc-500 font-mono block mb-2">
                 MAX SUPPLY
               </span>
+
               <span className="text-white font-mono">
                 {loading
                   ? '—'
-                  : `${formatSupply(data?.blockchain.max_supply ?? 0)} APXS`}
+                  : data
+                    ? `${formatSupply(
+                        data.blockchain.max_supply
+                      )} APXS`
+                    : '—'}
               </span>
             </div>
 
+            {/* NODE */}
             <div className="bg-black/30 p-4 rounded-xl border border-white/5">
               <span className="text-[10px] text-zinc-500 font-mono block mb-2">
                 NODE
               </span>
-              <span className="text-emerald-400 font-mono">
-                ONLINE
+
+              <span
+                className={`font-mono ${
+                  isOnline
+                    ? 'text-emerald-400'
+                    : 'text-zinc-500'
+                }`}
+              >
+                {loading
+                  ? 'CHECKING'
+                  : isOnline
+                    ? 'ONLINE'
+                    : 'OFFLINE'}
               </span>
             </div>
 
+            {/* DATA SOURCE */}
             <div className="bg-black/30 p-4 rounded-xl border border-white/5">
               <span className="text-[10px] text-zinc-500 font-mono block mb-2">
                 DATA SOURCE
               </span>
+
               <span className="text-white font-mono">
                 Live Rust API
               </span>
@@ -273,7 +372,21 @@ export default function NetworkPage() {
           </div>
         </div>
 
+        {/* ========================================================= */}
+        {/* ERROR */}
+        {/* ========================================================= */}
+
+        {error && (
+          <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300 font-mono">
+            Unable to connect to the Apraxus network. Try refreshing the
+            page or use the Refresh button above.
+          </div>
+        )}
+
+        {/* ========================================================= */}
         {/* FOOTER NOTE */}
+        {/* ========================================================= */}
+
         <div className="text-center">
           <p className="text-xs text-zinc-600 font-mono">
             Live data refreshes automatically every 10 seconds.
