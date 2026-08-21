@@ -34,6 +34,46 @@ type BalanceData = {
   symbol: string;
 };
 
+type ExplorerBlock = {
+  index: number;
+  hash: string;
+  previous_hash: string;
+  timestamp: string;
+  transactions: number;
+};
+
+type ExplorerTransaction = {
+  hash: string;
+  sender: string;
+  recipient: string;
+  amount: number;
+  fee: number;
+  nonce: number;
+};
+
+type ExplorerBlockDetails = {
+  index: number;
+  hash: string;
+  previous_hash: string;
+  timestamp: string;
+  transactions: ExplorerTransaction[];
+};
+
+type ExplorerTransactionDetails = {
+  hash: string;
+  block: number;
+  block_hash: string;
+  timestamp: string;
+  sender: string;
+  recipient: string;
+  amount: number;
+  fee: number;
+  nonce: number;
+  status: string;
+  network: string;
+  symbol: string;
+};
+
 const DEFAULT_ADDRESS =
   '58a627da735820758f2945632b21f5d10d29aecf08f03231a4737ac539e1036d';
 
@@ -46,6 +86,21 @@ export default function NetworkPage() {
   const [balance, setBalance] = useState<BalanceData | null>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [balanceError, setBalanceError] = useState('');
+
+  const [explorerBlocks, setExplorerBlocks] = useState<ExplorerBlock[]>([]);
+const [explorerLoading, setExplorerLoading] = useState(false);
+const [explorerError, setExplorerError] = useState('');
+
+const [selectedBlock, setSelectedBlock] =
+  useState<ExplorerBlockDetails | null>(null);
+
+const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
+
+  const [transactionHash, setTransactionHash] = useState('');
+  const [transactionDetails, setTransactionDetails] =
+    useState<ExplorerTransactionDetails | null>(null);
+  const [transactionLoading, setTransactionLoading] = useState(false);
+  const [transactionError, setTransactionError] = useState('');
 
   const loadNetwork = async () => {
     try {
@@ -69,6 +124,81 @@ export default function NetworkPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+    const loadExplorerBlocks = async () => {
+    try {
+      setExplorerLoading(true);
+      setExplorerError('');
+
+      const response = await fetch(
+        '/api/blocks',
+        {
+          cache: 'no-store',
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Explorer API request failed');
+      }
+
+      const result = await response.json();
+
+      setExplorerBlocks(result.blocks ?? []);
+    } catch (err) {
+      console.error('Apraxus explorer error:', err);
+      setExplorerError('Unable to load blockchain blocks.');
+    } finally {
+      setExplorerLoading(false);
+    }
+  };
+
+  const loadTransaction = async (hash: string) => {
+    const trimmedHash = hash.trim();
+
+    if (!trimmedHash) {
+      setTransactionError('Enter a transaction hash.');
+      setTransactionDetails(null);
+      return;
+    }
+
+    try {
+      setTransactionLoading(true);
+      setTransactionError('');
+      setTransactionDetails(null);
+
+      const response = await fetch(
+        `/api/transaction?hash=${encodeURIComponent(trimmedHash)}`,
+        {
+          cache: 'no-store',
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result?.error || 'Transaction not found.'
+        );
+      }
+
+      setTransactionDetails(result);
+    } catch (err) {
+      console.error('Apraxus transaction error:', err);
+
+      setTransactionError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to load transaction.'
+      );
+    } finally {
+      setTransactionLoading(false);
+    }
+  };
+
+  const handleTransactionSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+    loadTransaction(transactionHash);
   };
 
   const loadBalance = async (walletAddress: string) => {
@@ -115,15 +245,17 @@ export default function NetworkPage() {
   };
 
   useEffect(() => {
+  loadNetwork();
+  loadBalance(DEFAULT_ADDRESS);
+  loadExplorerBlocks();
+
+  const interval = setInterval(() => {
     loadNetwork();
-    loadBalance(DEFAULT_ADDRESS);
+    loadExplorerBlocks();
+  }, 10000);
 
-    const interval = setInterval(() => {
-      loadNetwork();
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, []);
+  return () => clearInterval(interval);
+}, []);
 
   const formatSupply = (value: number) => {
     return new Intl.NumberFormat('en-US').format(value / 100000000);
@@ -486,6 +618,521 @@ export default function NetworkPage() {
           )}
 
         </section>
+
+                {/* ========================================================= */}
+        {/* TRANSACTION EXPLORER */}
+        {/* ========================================================= */}
+
+        <section className="glass-panel p-6 sm:p-8 rounded-2xl border border-white/10">
+
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5 border-b border-white/5 pb-6 mb-6">
+
+            <div>
+              <div className="flex items-center gap-2 text-purple-400 mb-2">
+                <Search className="w-4 h-4" />
+
+                <span className="text-xs font-mono uppercase tracking-widest">
+                  Transaction Explorer
+                </span>
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-bold">
+                Search Transaction
+              </h2>
+
+              <p className="text-sm text-zinc-500 mt-2 max-w-2xl">
+                Search the live Apraxus blockchain using a transaction hash.
+              </p>
+            </div>
+
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/5 border border-emerald-500/20 text-xs font-mono text-emerald-400 shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              LIVE RPC
+            </div>
+          </div>
+
+          <form
+            onSubmit={handleTransactionSearch}
+            className="flex flex-col lg:flex-row gap-3"
+          >
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+
+              <input
+                type="text"
+                value={transactionHash}
+                onChange={(event) =>
+                  setTransactionHash(event.target.value)
+                }
+                placeholder="Enter transaction hash..."
+                spellCheck={false}
+                className="w-full h-12 rounded-xl border border-white/10 bg-black/30 pl-11 pr-4 text-sm font-mono text-white placeholder:text-zinc-600 outline-none focus:border-[#7B5CFA]/60 focus:ring-1 focus:ring-[#7B5CFA]/30 transition"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={transactionLoading}
+              className="h-12 px-6 rounded-xl bg-[#7B5CFA] hover:bg-[#6343EB] text-white font-semibold text-sm inline-flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {transactionLoading ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Search className="w-4 h-4" />
+              )}
+
+              {transactionLoading ? 'Searching...' : 'Search TX'}
+            </button>
+          </form>
+
+          {transactionError && (
+            <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300 font-mono">
+              {transactionError}
+            </div>
+          )}
+
+          {transactionDetails && !transactionLoading && (
+            <div className="mt-6 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-5">
+
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+
+                <div>
+                  <span className="text-[10px] text-zinc-500 font-mono tracking-widest">
+                    TRANSACTION STATUS
+                  </span>
+
+                  <div className="flex items-center gap-2 mt-2">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+
+                    <span className="text-xl font-bold font-mono text-emerald-400">
+                      {transactionDetails.status.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+
+                <span className="text-xs text-zinc-500 font-mono">
+                  Block #{transactionDetails.block}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                <div className="bg-black/30 p-4 rounded-xl border border-white/5 sm:col-span-2">
+                  <span className="text-[10px] text-zinc-600 font-mono block mb-2">
+                    TRANSACTION HASH
+                  </span>
+
+                  <span className="text-xs text-cyan-400 font-mono break-all">
+                    {transactionDetails.hash}
+                  </span>
+                </div>
+
+                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                  <span className="text-[10px] text-zinc-600 font-mono block mb-2">
+                    FROM
+                  </span>
+
+                  <span className="text-xs text-zinc-400 font-mono break-all">
+                    {transactionDetails.sender}
+                  </span>
+                </div>
+
+                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                  <span className="text-[10px] text-zinc-600 font-mono block mb-2">
+                    TO
+                  </span>
+
+                  <span className="text-xs text-zinc-400 font-mono break-all">
+                    {transactionDetails.recipient}
+                  </span>
+                </div>
+
+                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                  <span className="text-[10px] text-zinc-600 font-mono block mb-2">
+                    AMOUNT
+                  </span>
+
+                  <span className="text-lg text-emerald-400 font-mono">
+                    {formatAPXS(transactionDetails.amount)} APXS
+                  </span>
+                </div>
+
+                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                  <span className="text-[10px] text-zinc-600 font-mono block mb-2">
+                    FEE
+                  </span>
+
+                  <span className="text-lg text-zinc-300 font-mono">
+                    {formatAPXS(transactionDetails.fee)} APXS
+                  </span>
+                </div>
+
+                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                  <span className="text-[10px] text-zinc-600 font-mono block mb-2">
+                    NONCE
+                  </span>
+
+                  <span className="text-sm text-white font-mono">
+                    {transactionDetails.nonce}
+                  </span>
+                </div>
+
+                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                  <span className="text-[10px] text-zinc-600 font-mono block mb-2">
+                    TIMESTAMP
+                  </span>
+
+                  <span className="text-xs text-zinc-300 font-mono">
+                    {new Date(
+                      transactionDetails.timestamp
+                    ).toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="bg-black/30 p-4 rounded-xl border border-white/5 sm:col-span-2">
+                  <span className="text-[10px] text-zinc-600 font-mono block mb-2">
+                    BLOCK HASH
+                  </span>
+
+                  <span className="text-xs text-cyan-400 font-mono break-all">
+                    {transactionDetails.block_hash}
+                  </span>
+                </div>
+
+              </div>
+
+            </div>
+          )}
+
+        </section>
+
+        {/* ========================================================= */}
+        {/* BLOCK EXPLORER */}
+        {/* ========================================================= */}
+
+        <section className="glass-panel p-6 sm:p-8 rounded-2xl border border-white/10">
+
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5 border-b border-white/5 pb-6 mb-6">
+
+            <div>
+              <div className="flex items-center gap-2 text-cyan-400 mb-2">
+                <Blocks className="w-4 h-4" />
+
+                <span className="text-xs font-mono uppercase tracking-widest">
+                  Block Explorer
+                </span>
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-bold">
+                Live Blockchain
+              </h2>
+
+              <p className="text-sm text-zinc-500 mt-2">
+                Browse blocks confirmed by the live Apraxus Rust node.
+              </p>
+            </div>
+
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/5 border border-emerald-500/20 text-xs font-mono text-emerald-400 shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              LIVE
+            </div>
+          </div>
+
+          {explorerLoading && explorerBlocks.length === 0 && (
+            <div className="py-10 text-center text-sm text-zinc-500 font-mono">
+              Loading blockchain...
+            </div>
+          )}
+
+          {explorerError && (
+            <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300 font-mono">
+              {explorerError}
+            </div>
+          )}
+
+          {!explorerLoading &&
+            !explorerError &&
+            explorerBlocks.length > 0 && (
+              <div className="space-y-3">
+
+                {[...explorerBlocks]
+                  .reverse()
+                  .map((block) => (
+                    <button
+                      key={block.hash}
+                      type="button"
+                      onClick={() => {
+                        setSelectedBlockLoading(true);
+                        setSelectedBlock(null);
+
+                        fetch(
+                          `https://apraxus.onrender.com/block/${block.index}`,
+                          {
+                            cache: 'no-store',
+                          }
+                        )
+                          .then(async (response) => {
+                            if (!response.ok) {
+                              throw new Error(
+                                'Unable to load block details.'
+                              );
+                            }
+
+                            return response.json();
+                          })
+                          .then((result: ExplorerBlockDetails) => {
+                            setSelectedBlock(result);
+                          })
+                          .catch((err) => {
+                            console.error(
+                              'Block details error:',
+                              err
+                            );
+
+                            setExplorerError(
+                              'Unable to load block details.'
+                            );
+                          })
+                          .finally(() => {
+                            setSelectedBlockLoading(false);
+                          });
+                      }}
+                      className="w-full text-left rounded-xl border border-white/5 bg-black/30 hover:bg-white/[0.04] hover:border-cyan-500/20 p-5 transition"
+                    >
+                      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+                        <div className="flex items-center gap-4">
+
+                          <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                            <Blocks className="w-5 h-5 text-cyan-400" />
+                          </div>
+
+                          <div>
+                            <div className="text-xs text-zinc-500 font-mono">
+                              BLOCK
+                            </div>
+
+                            <div className="text-lg font-bold font-mono text-white">
+                              #{block.index}
+                            </div>
+                          </div>
+
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
+
+                          <div>
+                            <div className="text-[10px] text-zinc-600 font-mono">
+                              TRANSACTIONS
+                            </div>
+
+                            <div className="text-sm text-zinc-300 font-mono mt-1">
+                              {block.transactions}
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="text-[10px] text-zinc-600 font-mono">
+                              TIME
+                            </div>
+
+                            <div className="text-sm text-zinc-300 font-mono mt-1">
+                              {new Date(block.timestamp).toLocaleString()}
+                            </div>
+                          </div>
+
+                          <div className="max-w-[260px]">
+                            <div className="text-[10px] text-zinc-600 font-mono">
+                              HASH
+                            </div>
+
+                            <div className="text-xs text-cyan-400 font-mono mt-1 truncate">
+                              {block.hash}
+                            </div>
+                          </div>
+
+                        </div>
+
+                      </div>
+                    </button>
+                  ))}
+
+              </div>
+            )}
+
+          {/* BLOCK DETAILS */}
+
+          {selectedBlockLoading && (
+            <div className="mt-6 rounded-xl border border-white/10 bg-black/30 p-5 text-sm text-zinc-500 font-mono">
+              Loading block details...
+            </div>
+          )}
+
+          {selectedBlock && !selectedBlockLoading && (
+            <div className="mt-6 rounded-xl border border-cyan-500/20 bg-cyan-500/[0.03] p-5">
+
+              <div className="flex items-center justify-between gap-4 mb-5">
+
+                <div>
+                  <span className="text-[10px] text-zinc-500 font-mono">
+                    BLOCK DETAILS
+                  </span>
+
+                  <h3 className="text-xl font-bold font-mono mt-1">
+                    Block #{selectedBlock.index}
+                  </h3>
+                </div>
+
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                  <span className="text-[10px] text-zinc-600 font-mono block mb-2">
+                    HASH
+                  </span>
+
+                  <span className="text-xs text-cyan-400 font-mono break-all">
+                    {selectedBlock.hash}
+                  </span>
+                </div>
+
+                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                  <span className="text-[10px] text-zinc-600 font-mono block mb-2">
+                    PREVIOUS HASH
+                  </span>
+
+                  <span className="text-xs text-zinc-400 font-mono break-all">
+                    {selectedBlock.previous_hash}
+                  </span>
+                </div>
+
+                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                  <span className="text-[10px] text-zinc-600 font-mono block mb-2">
+                    TIMESTAMP
+                  </span>
+
+                  <span className="text-xs text-zinc-300 font-mono">
+                    {new Date(
+                      selectedBlock.timestamp
+                    ).toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                  <span className="text-[10px] text-zinc-600 font-mono block mb-2">
+                    TRANSACTIONS
+                  </span>
+
+                  <span className="text-sm text-white font-mono">
+                    {selectedBlock.transactions.length}
+                  </span>
+                </div>
+
+              </div>
+
+              {selectedBlock.transactions.length > 0 && (
+                <div className="mt-5">
+
+                  <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">
+                    Confirmed Transactions
+                  </span>
+
+                  <div className="mt-3 space-y-3">
+
+                    {selectedBlock.transactions.map((tx) => (
+                      <div
+                        key={tx.hash}
+                        className="rounded-xl border border-white/5 bg-black/30 p-4"
+                      >
+
+                        <div className="flex flex-col gap-3">
+
+                          <div>
+                            <span className="text-[10px] text-zinc-600 font-mono block mb-1">
+                              TRANSACTION HASH
+                            </span>
+
+                            <span className="text-xs text-cyan-400 font-mono break-all">
+                              {tx.hash}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                            <div>
+                              <span className="text-[10px] text-zinc-600 font-mono block mb-1">
+                                FROM
+                              </span>
+
+                              <span className="text-xs text-zinc-400 font-mono break-all">
+                                {tx.sender}
+                              </span>
+                            </div>
+
+                            <div>
+                              <span className="text-[10px] text-zinc-600 font-mono block mb-1">
+                                TO
+                              </span>
+
+                              <span className="text-xs text-zinc-400 font-mono break-all">
+                                {tx.recipient}
+                              </span>
+                            </div>
+
+                          </div>
+
+                          <div className="flex flex-wrap gap-5 pt-3 border-t border-white/5">
+
+                            <div>
+                              <span className="text-[10px] text-zinc-600 font-mono block mb-1">
+                                AMOUNT
+                              </span>
+
+                              <span className="text-sm text-emerald-400 font-mono">
+                                {formatAPXS(tx.amount)} APXS
+                              </span>
+                            </div>
+
+                            <div>
+                              <span className="text-[10px] text-zinc-600 font-mono block mb-1">
+                                FEE
+                              </span>
+
+                              <span className="text-sm text-zinc-300 font-mono">
+                                {formatAPXS(tx.fee)} APXS
+                              </span>
+                            </div>
+
+                            <div>
+                              <span className="text-[10px] text-zinc-600 font-mono block mb-1">
+                                NONCE
+                              </span>
+
+                              <span className="text-sm text-zinc-300 font-mono">
+                                {tx.nonce}
+                              </span>
+                            </div>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+                    ))}
+
+                  </div>
+
+                </div>
+              )}
+
+            </div>
+          )}
+
+        </section>
+
 
         {/* ========================================================= */}
         {/* NETWORK DETAILS */}
