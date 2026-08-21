@@ -9,6 +9,9 @@ import {
   Server,
   ShieldCheck,
   Coins,
+  Search,
+  Wallet,
+  Copy,
 } from 'lucide-react';
 
 type NetworkData = {
@@ -25,10 +28,24 @@ type NetworkData = {
   };
 };
 
+type BalanceData = {
+  address: string;
+  balance: number;
+  symbol: string;
+};
+
+const DEFAULT_ADDRESS =
+  '58a627da735820758f2945632b21f5d10d29aecf08f03231a4737ac539e1036d';
+
 export default function NetworkPage() {
   const [data, setData] = useState<NetworkData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  const [address, setAddress] = useState(DEFAULT_ADDRESS);
+  const [balance, setBalance] = useState<BalanceData | null>(null);
+  const [balanceLoading, setBalanceLoading] = useState(false);
+  const [balanceError, setBalanceError] = useState('');
 
   const loadNetwork = async () => {
     try {
@@ -54,8 +71,52 @@ export default function NetworkPage() {
     }
   };
 
+  const loadBalance = async (walletAddress: string) => {
+    const trimmedAddress = walletAddress.trim();
+
+    if (!trimmedAddress) {
+      setBalanceError('Enter a wallet address.');
+      setBalance(null);
+      return;
+    }
+
+    try {
+      setBalanceLoading(true);
+      setBalanceError('');
+      setBalance(null);
+
+      const response = await fetch(
+        `/api/balance?address=${encodeURIComponent(trimmedAddress)}`,
+        {
+          cache: 'no-store',
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result?.error || 'Unable to fetch wallet balance.'
+        );
+      }
+
+      setBalance(result);
+    } catch (err) {
+      console.error('Apraxus balance error:', err);
+
+      setBalanceError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to fetch wallet balance.'
+      );
+    } finally {
+      setBalanceLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadNetwork();
+    loadBalance(DEFAULT_ADDRESS);
 
     const interval = setInterval(() => {
       loadNetwork();
@@ -68,6 +129,12 @@ export default function NetworkPage() {
     return new Intl.NumberFormat('en-US').format(value / 100000000);
   };
 
+  const formatAPXS = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      maximumFractionDigits: 8,
+    }).format(value / 100000000);
+  };
+
   const isOnline =
     !loading &&
     !error &&
@@ -77,6 +144,21 @@ export default function NetworkPage() {
     !loading &&
     !error &&
     data?.blockchain.valid === true;
+
+  const handleBalanceSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+    loadBalance(address);
+  };
+
+  const copyAddress = async () => {
+    if (!balance?.address) return;
+
+    try {
+      await navigator.clipboard.writeText(balance.address);
+    } catch {
+      console.error('Unable to copy address.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#030305] text-white pt-28 pb-20 px-4 sm:px-6 lg:px-8">
@@ -96,7 +178,9 @@ export default function NetworkPage() {
               }`}
             />
 
-            {isOnline ? 'Live Network Telemetry' : 'Network Telemetry'}
+            {isOnline
+              ? 'Live Network Telemetry'
+              : 'Network Telemetry'}
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white mb-4">
@@ -104,9 +188,9 @@ export default function NetworkPage() {
           </h1>
 
           <p className="text-base text-zinc-400 leading-relaxed max-w-2xl">
-            Live telemetry from the Apraxus blockchain node. Monitor chain
-            height, supply, network health, and cryptographic validity in
-            real time.
+            Live telemetry from the Apraxus blockchain node. Monitor
+            chain height, supply, network health, cryptographic validity,
+            and wallet balances in real time.
           </p>
         </div>
 
@@ -215,7 +299,7 @@ export default function NetworkPage() {
             </div>
 
             <p className="text-xs text-zinc-500 mt-2">
-              Current circulating protocol supply
+              Current protocol supply
             </p>
           </div>
 
@@ -281,6 +365,127 @@ export default function NetworkPage() {
             </p>
           </div>
         </div>
+
+        {/* ========================================================= */}
+        {/* WALLET BALANCE EXPLORER */}
+        {/* ========================================================= */}
+
+        <section className="glass-panel p-6 sm:p-8 rounded-2xl border border-white/10">
+
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5 border-b border-white/5 pb-6 mb-6">
+
+            <div>
+              <div className="flex items-center gap-2 text-cyan-400 mb-2">
+                <Wallet className="w-4 h-4" />
+
+                <span className="text-xs font-mono uppercase tracking-widest">
+                  Wallet Explorer
+                </span>
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-bold">
+                Check APXS Balance
+              </h2>
+
+              <p className="text-sm text-zinc-500 mt-2 max-w-2xl">
+                Query the live Apraxus Rust node for the balance of any
+                wallet address.
+              </p>
+            </div>
+
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/5 border border-emerald-500/20 text-xs font-mono text-emerald-400 shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              LIVE RPC
+            </div>
+          </div>
+
+          <form
+            onSubmit={handleBalanceSearch}
+            className="flex flex-col lg:flex-row gap-3"
+          >
+            <div className="relative flex-1">
+              <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+
+              <input
+                type="text"
+                value={address}
+                onChange={(event) => setAddress(event.target.value)}
+                placeholder="Enter Apraxus wallet address..."
+                spellCheck={false}
+                className="w-full h-12 rounded-xl border border-white/10 bg-black/30 pl-11 pr-4 text-sm font-mono text-white placeholder:text-zinc-600 outline-none focus:border-[#7B5CFA]/60 focus:ring-1 focus:ring-[#7B5CFA]/30 transition"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={balanceLoading}
+              className="h-12 px-6 rounded-xl bg-[#7B5CFA] hover:bg-[#6343EB] text-white font-semibold text-sm inline-flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {balanceLoading ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Search className="w-4 h-4" />
+              )}
+
+              {balanceLoading ? 'Checking...' : 'Check Balance'}
+            </button>
+          </form>
+
+          {/* BALANCE RESULT */}
+          {balance && (
+            <div className="mt-6 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-5">
+
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+                <div>
+                  <span className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
+                    Wallet Balance
+                  </span>
+
+                  <div className="text-3xl sm:text-4xl font-bold font-mono text-emerald-400 mt-2">
+                    {formatAPXS(balance.balance)} {balance.symbol}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-mono text-emerald-400">
+                  <CheckCircle2 className="w-4 h-4" />
+                  VERIFIED BY NODE
+                </div>
+              </div>
+
+              <div className="mt-5 pt-4 border-t border-white/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
+                <div className="min-w-0">
+                  <span className="text-[10px] text-zinc-600 font-mono block mb-1">
+                    ADDRESS
+                  </span>
+
+                  <span className="text-xs text-zinc-400 font-mono break-all">
+                    {balance.address}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={copyAddress}
+                  className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] text-xs font-mono text-zinc-400 hover:text-white transition shrink-0"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  Copy
+                </button>
+
+              </div>
+            </div>
+          )}
+
+          {/* BALANCE ERROR */}
+          {balanceError && (
+            <div className="mt-5 rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-300 font-mono">
+              {balanceError}
+            </div>
+          )}
+
+        </section>
 
         {/* ========================================================= */}
         {/* NETWORK DETAILS */}
@@ -384,12 +589,13 @@ export default function NetworkPage() {
         )}
 
         {/* ========================================================= */}
-        {/* FOOTER NOTE */}
+        {/* FOOTER */}
         {/* ========================================================= */}
 
         <div className="text-center">
           <p className="text-xs text-zinc-600 font-mono">
-            Live data refreshes automatically every 10 seconds.
+            Network telemetry refreshes automatically every 10 seconds.
+            Wallet queries are fetched on demand from the live Rust API.
           </p>
         </div>
 

@@ -1,14 +1,22 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 const API_URL = 'https://apraxus.onrender.com';
 
-const DEFAULT_ADDRESS =
-  '58a627da735820758f2945632b21f5d10d29aecf08f03231a4737ac539e1036d';
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const address = request.nextUrl.searchParams.get('address');
+
+    if (!address) {
+      return NextResponse.json(
+        {
+          error: 'Wallet address is required',
+        },
+        { status: 400 }
+      );
+    }
+
     const response = await fetch(
-      `${API_URL}/balance/${DEFAULT_ADDRESS}`,
+      `${API_URL}/balance/${encodeURIComponent(address)}`,
       {
         cache: 'no-store',
       }
