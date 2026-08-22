@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import APXSWallet from "@/components/ui/APXSWallet";
 import {
   Activity,
   Blocks,
@@ -296,6 +297,7 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
   return (
     <div className="min-h-screen bg-[#030305] text-white pt-28 pb-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto flex flex-col gap-12">
+        <APXSWallet />
 
         {/* ========================================================= */}
         {/* HEADER */}
