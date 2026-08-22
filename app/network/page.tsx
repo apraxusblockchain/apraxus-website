@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   Activity,
   Blocks,
@@ -858,46 +859,10 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
                 {[...explorerBlocks]
                   .reverse()
                   .map((block) => (
-                    <button
+                    <Link
                       key={block.hash}
-                      type="button"
-                      onClick={() => {
-                        setSelectedBlockLoading(true);
-                        setSelectedBlock(null);
-
-                        fetch(
-                          `https://apraxus.onrender.com/block/${block.index}`,
-                          {
-                            cache: 'no-store',
-                          }
-                        )
-                          .then(async (response) => {
-                            if (!response.ok) {
-                              throw new Error(
-                                'Unable to load block details.'
-                              );
-                            }
-
-                            return response.json();
-                          })
-                          .then((result: ExplorerBlockDetails) => {
-                            setSelectedBlock(result);
-                          })
-                          .catch((err) => {
-                            console.error(
-                              'Block details error:',
-                              err
-                            );
-
-                            setExplorerError(
-                              'Unable to load block details.'
-                            );
-                          })
-                          .finally(() => {
-                            setSelectedBlockLoading(false);
-                          });
-                      }}
-                      className="w-full text-left rounded-xl border border-white/5 bg-black/30 hover:bg-white/[0.04] hover:border-cyan-500/20 p-5 transition"
+                      href={`/network/block/${block.index}`}
+                      className="block w-full text-left rounded-xl border border-white/5 bg-black/30 hover:bg-white/[0.04] hover:border-cyan-500/20 p-5 transition"
                     >
                       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 
@@ -954,7 +919,7 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
                         </div>
 
                       </div>
-                    </button>
+                    </Link>
                   ))}
 
               </div>
