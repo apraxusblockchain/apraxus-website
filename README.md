@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+k# Apraxus
 
-## Getting Started
+> Infrastructure for the Autonomous Economy.
 
-First, run the development server:
+Apraxus is a blockchain infrastructure project designed for autonomous agents, programmable payments, and machine-to-machine transactions.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+The project combines a Rust-based blockchain core with a web interface for interacting with the network, monitoring network telemetry, and testing token functionality.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Overview
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Apraxus is being developed as infrastructure for an emerging autonomous economy where software agents can transact, coordinate, and operate programmatically.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The current prototype focuses on:
 
-## Learn More
+- Blockchain core infrastructure written in Rust
+- Cryptographically signed transactions
+- Wallet and balance management
+- Programmable payment infrastructure
+- Machine-to-machine transaction capabilities
+- APXS token functionality
+- Web-based network telemetry
+- Wallet connectivity through MetaMask
+- Sepolia testnet token integration
+- Network and explorer interfaces
 
-To learn more about Next.js, take a look at the following resources:
+## Current Status
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Phase:** Prototype / Testnet Infrastructure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The Apraxus core prototype is currently under active development.
 
-## Deploy on Vercel
+The public web interface provides experimental access to network telemetry and wallet functionality while the underlying blockchain infrastructure continues to evolve.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Architecture
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+                    ┌──────────────────────┐
+                    │     Apraxus Web      │
+                    │   Network / Wallet   │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │    Apraxus Node      │
+                    │      Rust Core       │
+                    └──────────┬───────────┘
+                               │
+             ┌─────────────────┼─────────────────┐
+             ▼                 ▼                 ▼
+       Transactions         Balances          Blocks
+             │                 │                 │
+             └─────────────────┼─────────────────┘
+                               ▼
+                    Cryptographic Validation
