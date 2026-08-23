@@ -7,7 +7,7 @@ import {
   formatUnits,
   type Address,
 } from "viem";
-import { sepolia } from "viem/chains";
+import { mainnet } from "viem/chains";
 import {
   APXS_ABI,
   APXS_CONTRACT_ADDRESS,
@@ -36,7 +36,7 @@ export default function APXSWallet() {
       }
 
       const walletClient = createWalletClient({
-        chain: sepolia,
+        chain: mainnet,
         transport: custom(window.ethereum),
       });
 
@@ -77,7 +77,7 @@ export default function APXSWallet() {
         </p>
 
         <h3 className="mt-2 text-xl font-semibold text-white">
-          Sepolia Token Balance
+          Ethereum Mainnet Token Balance
         </h3>
       </div>
 

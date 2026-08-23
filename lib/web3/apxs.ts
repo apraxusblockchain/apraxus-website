@@ -1,5 +1,5 @@
 import { createPublicClient, http } from "viem";
-import { sepolia } from "viem/chains";
+import { mainnet } from "viem/chains";
 
 export const APXS_CONTRACT_ADDRESS =
   process.env.NEXT_PUBLIC_APXS_CONTRACT as `0x${string}`;
@@ -43,6 +43,6 @@ export const APXS_ABI = [
 ] as const;
 
 export const apxsPublicClient = createPublicClient({
-  chain: sepolia,
+  chain: mainnet,
   transport: http(),
 });
