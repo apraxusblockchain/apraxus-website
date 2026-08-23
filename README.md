@@ -1,5 +1,4 @@
-k# Apraxus
-
+# Apraxus
 > Infrastructure for the Autonomous Economy.
 
 Apraxus is a blockchain infrastructure project designed for autonomous agents, programmable payments, and machine-to-machine transactions.
@@ -33,6 +32,7 @@ The public web interface provides experimental access to network telemetry and w
 
 ## Architecture
 
+Apraxus is structured around several core components:
 ```text
                     ┌──────────────────────┐
                     │     Apraxus Web      │
@@ -42,8 +42,7 @@ The public web interface provides experimental access to network telemetry and w
                                ▼
                     ┌──────────────────────┐
                     │    Apraxus Node      │
-                    │      Rust Core       │
-                    └──────────┬───────────┘
+                    │      Rust Core
                                │
              ┌─────────────────┼─────────────────┐
              ▼                 ▼                 ▼
