@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Token } from '@uniswap/sdk-core';
-import { Pool, Position } from '@uniswap/v4-sdk';
 import Link from 'next/link';
 import {
   APXS_SEPOLIA_ADDRESS,
@@ -86,6 +84,120 @@ function shorten(address: string) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
+const Q96 = 2n ** 96n;
+const Q32 = 2n ** 32n;
+const MAX_UINT256 = (2n ** 256n) - 1n;
+
+function getSqrtRatioAtTick(tick: number): bigint {
+  if (tick < -887272 || tick > 887272) {
+    throw new Error('Tick out of bounds');
+  }
+
+  let absTick = tick < 0 ? -tick : tick;
+
+  let ratio =
+    (absTick & 1) !== 0
+      ? 0xfffcb933bd6fad37aa2d162d1a594001n
+      : 0x100000000000000000000000000000000n;
+
+  if ((absTick & 2) !== 0)
+    ratio = (ratio * 0xfff97272373d413259a46990580e213an) >> 128n;
+  if ((absTick & 4) !== 0)
+    ratio = (ratio * 0xfff2e50f5f656932ef12357cf3c7fdccan) >> 128n;
+  if ((absTick & 8) !== 0)
+    ratio = (ratio * 0xffe5caca7e10e4e61c3624eaa0941cd0n) >> 128n;
+  if ((absTick & 16) !== 0)
+    ratio = (ratio * 0xffcb9843d60f6159c9db58835c926644n) >> 128n;
+  if ((absTick & 32) !== 0)
+    ratio = (ratio * 0xff973b41fa98c081472e6896dfb254c0n) >> 128n;
+  if ((absTick & 64) !== 0)
+    ratio = (ratio * 0xff2ea16466c96a3843ec78b326b52861n) >> 128n;
+  if ((absTick & 128) !== 0)
+    ratio = (ratio * 0xfe5dee046a99a2a811c461f1969c3053n) >> 128n;
+  if ((absTick & 256) !== 0)
+    ratio = (ratio * 0xfcbe86c7900a88aedcffc83b479aa3a4n) >> 128n;
+  if ((absTick & 512) !== 0)
+    ratio = (ratio * 0xf987a7253ac413176f2b074cf7815e54n) >> 128n;
+  if ((absTick & 1024) !== 0)
+    ratio = (ratio * 0xf3392b0822b70005940c7a398e4b70f3n) >> 128n;
+  if ((absTick & 2048) !== 0)
+    ratio = (ratio * 0xe7159475a2c29b7443b29c7fa6e889d9n) >> 128n;
+  if ((absTick & 4096) !== 0)
+    ratio = (ratio * 0xd097f3bdfd2022b8845ad8f792aa5825n) >> 128n;
+  if ((absTick & 8192) !== 0)
+    ratio = (ratio * 0xa9f746462d870fdf8a65dc1f90e061e5n) >> 128n;
+  if ((absTick & 16384) !== 0)
+    ratio = (ratio * 0x70d869a156d2a1b890bb3df62baf32f7n) >> 128n;
+  if ((absTick & 32768) !== 0)
+    ratio = (ratio * 0x31be135f97d08fd981231505542fcfa6n) >> 128n;
+  if ((absTick & 65536) !== 0)
+    ratio = (ratio * 0x9aa508b5b7a84e1c677de54f3e99bc9n) >> 128n;
+  if ((absTick & 131072) !== 0)
+    ratio = (ratio * 0x5d6af8dedb81196699c329225ee604n) >> 128n;
+  if ((absTick & 262144) !== 0)
+    ratio = (ratio * 0x2216e584f5fa1ea926041bedfe98n) >> 128n;
+  if ((absTick & 524288) !== 0)
+    ratio = (ratio * 0x48a170391f7dc42444e8fa2n) >> 128n;
+
+  if (tick > 0) {
+    ratio = MAX_UINT256 / ratio;
+  }
+
+  return (ratio >> 32n) + (ratio % Q32 === 0n ? 0n : 1n);
+}
+
+function formatUnits(value: bigint, decimals: number): string {
+  const negative = value < 0n;
+  const absolute = negative ? -value : value;
+  const base = 10n ** BigInt(decimals);
+
+  const whole = absolute / base;
+  const fraction = (absolute % base)
+    .toString()
+    .padStart(decimals, '0')
+    .replace(/0+$/, '');
+
+  return `${negative ? '-' : ''}${whole}${
+    fraction ? `.${fraction}` : ''
+  }`;
+}
+
+function calculatePositionAmounts(
+  liquidity: bigint,
+  currentSqrtPrice: bigint,
+  tickLower: number,
+  tickUpper: number,
+) {
+  const sqrtLower = getSqrtRatioAtTick(tickLower);
+  const sqrtUpper = getSqrtRatioAtTick(tickUpper);
+
+  let amount0 = 0n;
+  let amount1 = 0n;
+
+  if (currentSqrtPrice <= sqrtLower) {
+    amount0 =
+      (liquidity * (sqrtUpper - sqrtLower) * Q96) /
+      (sqrtLower * sqrtUpper);
+  } else if (currentSqrtPrice < sqrtUpper) {
+    amount0 =
+      (liquidity * (sqrtUpper - currentSqrtPrice) * Q96) /
+      (currentSqrtPrice * sqrtUpper);
+
+    amount1 =
+      (liquidity * (currentSqrtPrice - sqrtLower)) /
+      Q96;
+  } else {
+    amount1 =
+      (liquidity * (sqrtUpper - sqrtLower)) /
+      Q96;
+  }
+
+  return {
+    weth: formatUnits(amount0, 18),
+    apxs: formatUnits(amount1, 8),
+  };
+}
+
 function decodeInt24(raw: bigint) {
   return raw >= 0x800000n
     ? Number(raw - 0x1000000n)
@@ -163,40 +275,15 @@ export default function LiquidityPage() {
       setPositionLiquidity(positionLiq);
       setOwner(positionOwner);
 
-      const wethToken = new Token(
-        421614,
-        WETH,
-        18,
-        'WETH',
-      );
-
-      const apxsToken = new Token(
-        421614,
-        APXS,
-        8,
-        'APXS',
-      );
-
-      const pool = new Pool(
-        wethToken,
-        apxsToken,
-        3000,
-        60,
-        '0x0000000000000000000000000000000000000000',
-        currentSqrtPrice.toString(),
-        liquidity.toString(),
-        currentTick,
-      );
-
-      const position = new Position({
-        pool,
-        liquidity: positionLiq.toString(),
+      const amounts = calculatePositionAmounts(
+        positionLiq,
+        currentSqrtPrice,
         tickLower,
         tickUpper,
-      });
+      );
 
-      setRequiredWeth(position.amount0.toExact());
-      setRequiredApxs(position.amount1.toExact());
+      setRequiredWeth(amounts.weth);
+      setRequiredApxs(amounts.apxs);
     } catch (err) {
       console.error(err);
       setError('Unable to read Arbitrum Sepolia liquidity data.');
