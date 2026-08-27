@@ -18,6 +18,7 @@ import {
   Globe2, 
   ShieldCheck, 
   Activity,
+  Droplets,
   HelpCircle,
   Info,
   Sparkles
@@ -33,6 +34,7 @@ const MENU_ITEMS = [
   { name: 'Ecosystem', href: '/ecosystem', desc: 'Autonomous Agent Categories & Integrations', icon: Globe2, tag: 'Directory' },
   { name: 'Security & Disclosure', href: '/security', desc: 'Zero-Trust Threat Modeling & Audit Protocol', icon: ShieldCheck, tag: 'Trust' },
   { name: 'Network & Explorer', href: '/network', desc: 'Pre-Testnet Telemetry & Chain Status', icon: Activity, tag: 'Planned' },
+  { name: 'APXS Liquidity', href: '/liquidity', desc: 'APXS / WETH Uniswap v4 Liquidity & LP Position', icon: Droplets, tag: 'Arbitrum Sepolia' },
   { name: 'About & Vision', href: '/about', desc: 'The Autonomous Economy Thesis', icon: Info, tag: 'Manifesto' },
   { name: 'FAQ', href: '/faq', desc: 'Direct Answers to Technical Questions', icon: HelpCircle, tag: 'Support' },
 ];
