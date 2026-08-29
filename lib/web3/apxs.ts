@@ -1,5 +1,5 @@
 import { createPublicClient, http } from "viem";
-import { mainnet } from "viem/chains";
+import { arbitrumSepolia } from "viem/chains";
 
 export const APXS_CONTRACT_ADDRESS =
   process.env.NEXT_PUBLIC_APXS_CONTRACT as `0x${string}`;
@@ -40,9 +40,19 @@ export const APXS_ABI = [
     inputs: [{ name: "account", type: "address" }],
     outputs: [{ name: "", type: "uint256" }],
   },
+  {
+    type: "function",
+    name: "transfer",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "value", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+  },
 ] as const;
 
 export const apxsPublicClient = createPublicClient({
-  chain: mainnet,
+  chain: arbitrumSepolia,
   transport: http(),
 });

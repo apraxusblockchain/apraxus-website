@@ -1,5 +1,6 @@
 import React from 'react';
 import { AgentEnvelopeArchitecture } from '@/components/ui/AgentEnvelopeArchitecture';
+import { AgentPaymentConsole } from '@/components/ui/AgentPaymentConsole';
 import { Bot, Key, Shield, Clock, AlertTriangle, CheckCircle, Lock, Fingerprint, Code2, Database } from 'lucide-react';
 import { StatusPill } from '@/components/ui/StatusPill';
 
@@ -27,6 +28,9 @@ export default function AgentsPage() {
 
         {/* Deep Dive Architecture Component */}
         <AgentEnvelopeArchitecture />
+
+        {/* APXS Agent Payment Console */}
+        <AgentPaymentConsole />
 
         {/* Technical Core Specifications */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
