@@ -25,11 +25,7 @@ import {
   apxsPublicClient,
 } from '@/lib/web3/apxs';
 
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
+import { connectMetaMask } from '@/lib/web3/metamask';
 
 const DAILY_LIMIT = 100;
 const PER_TX_LIMIT = 10;
@@ -88,30 +84,27 @@ export function AgentPaymentConsole() {
   }, [numericAmount, destination, dailySpent]);
 
   async function connectWallet() {
-    if (!window.ethereum) {
-      throw new Error('MetaMask is not installed.');
-    }
-
-    const walletClient = createWalletClient({
-      chain: arbitrumSepolia,
-      transport: custom(window.ethereum),
-    });
-
-    const [account] = await walletClient.requestAddresses();
+    const {
+      provider,
+      account,
+      chainId,
+    } = await connectMetaMask();
 
     if (!account) {
       throw new Error('No wallet account found.');
     }
 
-    const chainId = await walletClient.getChainId();
-
-    if (chainId !== arbitrumSepolia.id) {
-      await walletClient.switchChain({
-        id: arbitrumSepolia.id,
-      });
+    if (chainId.toLowerCase() !== '0x66eee') {
+      throw new Error(
+        'Please connect to Arbitrum Sepolia.'
+      );
     }
 
-    setWalletAddress(account);
+    const walletClient = createWalletClient({
+      account,
+      chain: arbitrumSepolia,
+      transport: custom(provider),
+    });
 
     const [rawBalance, tokenDecimals] = await Promise.all([
       apxsPublicClient.readContract({
@@ -127,8 +120,11 @@ export function AgentPaymentConsole() {
       }),
     ]);
 
+    setWalletAddress(account);
     setDecimals(tokenDecimals);
-    setWalletBalance(formatUnits(rawBalance, tokenDecimals));
+    setWalletBalance(
+      formatUnits(rawBalance, tokenDecimals)
+    );
 
     return {
       walletClient,

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import {
   createPublicClient,
+  createWalletClient,
+  custom,
   formatUnits,
   http,
   type Address,
@@ -33,15 +35,25 @@ export default function APXSWallet() {
       setBalance("—");
       setLoading(true);
 
-      const { account, chainId } = await connectMetaMask();
+      const {
+        provider,
+        account,
+      } = await connectMetaMask();
 
       if (!account) {
         throw new Error("No wallet account found.");
       }
 
-      if (chainId.toLowerCase() !== "0x66eee") {
+      const walletClient = createWalletClient({
+        chain: arbitrumSepolia,
+        transport: custom(provider),
+      });
+
+      const chainId = await walletClient.getChainId();
+
+      if (chainId !== arbitrumSepolia.id) {
         throw new Error(
-          "Please connect to Arbitrum Sepolia."
+          "Please switch MetaMask to Arbitrum Sepolia."
         );
       }
 
@@ -100,7 +112,7 @@ export default function APXSWallet() {
           disabled={loading}
           className="rounded-xl bg-[#7B5CFA] px-5 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Connecting..." : "Connect Wallet"}
+          {loading ? "Connecting..." : "Connect MetaMask"}
         </button>
       ) : (
         <div className="space-y-4">
