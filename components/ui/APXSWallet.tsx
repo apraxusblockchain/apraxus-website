@@ -3,8 +3,6 @@
 import { useState } from "react";
 import {
   createPublicClient,
-  createWalletClient,
-  custom,
   formatUnits,
   http,
   type Address,
@@ -16,11 +14,7 @@ import {
   APXS_CONTRACT_ADDRESS,
 } from "@/lib/web3/apxs";
 
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
+import { connectMetaMask } from "@/lib/web3/metamask";
 
 const apxsClient = createPublicClient({
   chain: arbitrumSepolia,
@@ -39,29 +33,15 @@ export default function APXSWallet() {
       setBalance("—");
       setLoading(true);
 
-      if (typeof window === "undefined" || !window.ethereum) {
-        throw new Error("MetaMask is not installed.");
-      }
-
-      const walletClient = createWalletClient({
-        chain: arbitrumSepolia,
-        transport: custom(window.ethereum),
-      });
-
-      const accounts = await walletClient.requestAddresses();
-      const account = accounts[0];
+      const { account, chainId } = await connectMetaMask();
 
       if (!account) {
         throw new Error("No wallet account found.");
       }
 
-      const chainId = await window.ethereum.request({
-        method: "eth_chainId",
-      });
-
-      if (chainId !== "0x66eee") {
+      if (chainId.toLowerCase() !== "0x66eee") {
         throw new Error(
-          "Please switch MetaMask to Arbitrum Sepolia."
+          "Please connect to Arbitrum Sepolia."
         );
       }
 
@@ -91,7 +71,7 @@ export default function APXSWallet() {
       setError(
         err instanceof Error
           ? err.message
-          : "Unable to read APXS balance."
+          : "Unable to connect wallet."
       );
     } finally {
       setLoading(false);
@@ -120,7 +100,7 @@ export default function APXSWallet() {
           disabled={loading}
           className="rounded-xl bg-[#7B5CFA] px-5 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Connecting..." : "Connect MetaMask"}
+          {loading ? "Connecting..." : "Connect Wallet"}
         </button>
       ) : (
         <div className="space-y-4">
