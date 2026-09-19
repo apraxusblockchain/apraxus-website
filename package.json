@@ -9,14 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@metamask/connect-evm": "^2.1.1",
+    "@coinbase/wallet-sdk": "^4.3.7",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
+    "@tanstack/react-query": "^5.102.8",
     "@types/three": "^0.185.4",
-    "@uniswap/sdk-core": "^7.19.1",
-    "@uniswap/universal-router-sdk": "^5.11.3",
-    "@uniswap/v4-periphery": "^1.0.3",
-    "@uniswap/v4-sdk": "^2.3.2",
+    "@uniswap/sdk-core": "^7.19.2",
+    "@uniswap/universal-router-sdk": "^5.11.5",
+    "@uniswap/v4-sdk": "^2.3.3",
+    "@walletconnect/ethereum-provider": "^2.25.0",
     "clsx": "^2.1.1",
     "framer-motion": "^13.1.0",
     "gsap": "^3.15.0",
@@ -27,7 +28,8 @@
     "react-dom": "19.2.8",
     "tailwind-merge": "^3.6.0",
     "three": "^0.185.1",
-    "viem": "^2.55.19"
+    "viem": "^2.55.19",
+    "wagmi": "^3.7.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -51,7 +51,7 @@ export const LiveNetworkStats: React.FC = () => {
     {
       label: 'LATEST BLOCKS',
       value: data ? data.blockchain.blocks.toLocaleString() : '—',
-      sub: 'Live blockchain height',
+      sub: 'Apraxus backend height',
       highlight: 'text-[#38E8F8]',
       badge: 'LIVE',
       icon: Blocks,
@@ -61,7 +61,7 @@ export const LiveNetworkStats: React.FC = () => {
       value: data
          ? `${(data.blockchain.total_supply / 100_000_000).toLocaleString()} APXS`
         : '—',
-      sub: 'Current APXS supply',
+      sub: 'APXS token supply',
       highlight: 'text-[#7B5CFA]',
       badge: data?.health.token || 'APXS',
       icon: Database,
@@ -73,7 +73,7 @@ export const LiveNetworkStats: React.FC = () => {
         : error
           ? 'OFFLINE'
           : 'LOADING',
-      sub: data?.health.network || 'Connecting to Apraxus',
+      sub: data?.health.network || 'Apraxus backend status',
       highlight:
         data?.health.status === 'ok'
           ? 'text-emerald-400'
@@ -88,7 +88,7 @@ export const LiveNetworkStats: React.FC = () => {
           ? 'VALID'
           : 'INVALID'
         : '—',
-      sub: 'Cryptographic chain verification',
+      sub: 'Backend chain verification',
       highlight: data?.blockchain.valid
         ? 'text-emerald-400'
         : 'text-red-400',
@@ -134,7 +134,7 @@ export const LiveNetworkStats: React.FC = () => {
 
               <div className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-500 pt-2 border-t border-white/5">
                 <Icon className="w-3.5 h-3.5 text-[#7B5CFA]" />
-                <span>Live Apraxus Network</span>
+                <span>Apraxus Core API</span>
               </div>
             </div>
           );

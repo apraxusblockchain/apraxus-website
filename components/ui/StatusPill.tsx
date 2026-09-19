@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type StatusType = 'SHIPPED' | 'TESTING' | 'UNDER_DEVELOPMENT' | 'PLANNED' | 'COMING_SOON';
+export type StatusType = 'SHIPPED' | 'TESTING' | 'UNDER_DEVELOPMENT' | 'TARGET_ARCHITECTURE' | 'PLANNED' | 'COMING_SOON';
 
 interface StatusPillProps {
   status: StatusType;
@@ -16,6 +16,8 @@ export const StatusPill: React.FC<StatusPillProps> = ({ status, className = '' }
         return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30';
       case 'UNDER_DEVELOPMENT':
         return 'bg-purple-500/10 text-purple-300 border-purple-500/30 animate-pulse';
+      case 'TARGET_ARCHITECTURE':
+        return 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30';
       case 'PLANNED':
         return 'bg-amber-500/10 text-amber-300 border-amber-500/20';
       case 'COMING_SOON':
@@ -29,6 +31,7 @@ export const StatusPill: React.FC<StatusPillProps> = ({ status, className = '' }
       case 'SHIPPED': return 'SHIPPED';
       case 'TESTING': return 'TESTING';
       case 'UNDER_DEVELOPMENT': return 'UNDER DEV';
+      case 'TARGET_ARCHITECTURE': return 'TARGET ARCH';
       case 'PLANNED': return 'PLANNED';
       case 'COMING_SOON': return 'COMING SOON';
     }

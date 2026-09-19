@@ -1,14 +1,6 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import {
-  createWalletClient,
-  custom,
-  formatUnits,
-  parseUnits,
-  type Address,
-} from 'viem';
-import { arbitrumSepolia } from 'viem/chains';
+import { useMemo, useState } from "react";
 import {
   Bot,
   CheckCircle2,
@@ -17,34 +9,49 @@ import {
   Lock,
   ShieldCheck,
   XCircle,
-} from 'lucide-react';
+} from "lucide-react";
+
+import {
+  createWalletClient,
+  custom,
+  formatUnits,
+  isAddress,
+  parseUnits,
+  type Address,
+} from "viem";
+
+import { arbitrumSepolia } from "viem/chains";
 
 import {
   APXS_ABI,
   APXS_CONTRACT_ADDRESS,
   apxsPublicClient,
-} from '@/lib/web3/apxs';
+} from "@/lib/web3/apxs";
 
-import { connectMetaMask } from '@/lib/web3/metamask';
+declare global {
+  interface Window {
+    ethereum?: any;
+  }
+}
 
 const DAILY_LIMIT = 100;
 const PER_TX_LIMIT = 10;
 
-const APPROVED_DESTINATION =
-  process.env.NEXT_PUBLIC_APXS_APPROVED_DESTINATION as Address;
-
 export function AgentPaymentConsole() {
-  const [amount, setAmount] = useState('0.001');
-  const [destination, setDestination] = useState('');
+  const [amount, setAmount] = useState("0.001");
+  const [destination, setDestination] = useState("");
+
   const [checked, setChecked] = useState(false);
   const [executed, setExecuted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [txHash, setTxHash] = useState<string>('');
+
+  const [executing, setExecuting] = useState(false);
   const [walletAddress, setWalletAddress] = useState<Address | null>(null);
-  const [walletBalance, setWalletBalance] = useState<string>('—');
-  const [decimals, setDecimals] = useState<number>(18);
-  const [dailySpent, setDailySpent] = useState(0);
+
+  const [transactionHash, setTransactionHash] = useState<string>("");
+  const [tokenBalance, setTokenBalance] = useState<string>("—");
+  const [decimals, setDecimals] = useState<number | null>(null);
+
+  const [error, setError] = useState("");
 
   const numericAmount = Number(amount);
 
@@ -59,21 +66,15 @@ export function AgentPaymentConsole() {
 
     const withinDailyLimit =
       validAmount &&
-      numericAmount + dailySpent <= DAILY_LIMIT;
-
-    const validDestination =
-      /^0x[a-fA-F0-9]{40}$/.test(destination.trim());
+      numericAmount <= DAILY_LIMIT;
 
     const approvedDestination =
-      validDestination &&
-      destination.trim().toLowerCase() ===
-        APPROVED_DESTINATION?.toLowerCase();
+      isAddress(destination.trim());
 
     return {
       validAmount,
       withinTxLimit,
       withinDailyLimit,
-      validDestination,
       approvedDestination,
       allowed:
         validAmount &&
@@ -81,154 +82,177 @@ export function AgentPaymentConsole() {
         withinDailyLimit &&
         approvedDestination,
     };
-  }, [numericAmount, destination, dailySpent]);
+  }, [numericAmount, destination]);
 
-  async function connectWallet() {
-    const {
-      provider,
-      account,
-      chainId,
-    } = await connectMetaMask();
-
-    if (!account) {
-      throw new Error('No wallet account found.');
-    }
-
-    if (chainId.toLowerCase() !== '0x66eee') {
-      throw new Error(
-        'Please connect to Arbitrum Sepolia.'
-      );
-    }
-
-    const walletClient = createWalletClient({
-      account,
-      chain: arbitrumSepolia,
-      transport: custom(provider),
-    });
-
-    const [rawBalance, tokenDecimals] = await Promise.all([
-      apxsPublicClient.readContract({
-        address: APXS_CONTRACT_ADDRESS,
-        abi: APXS_ABI,
-        functionName: 'balanceOf',
-        args: [account],
-      }),
-      apxsPublicClient.readContract({
-        address: APXS_CONTRACT_ADDRESS,
-        abi: APXS_ABI,
-        functionName: 'decimals',
-      }),
-    ]);
-
-    setWalletAddress(account);
-    setDecimals(tokenDecimals);
-    setWalletBalance(
-      formatUnits(rawBalance, tokenDecimals)
-    );
-
-    return {
-      walletClient,
-      account,
-      rawBalance,
-      tokenDecimals,
-    };
-  }
-
-  async function checkPolicy() {
-    try {
-      setError('');
-      setExecuted(false);
-      setTxHash('');
-      setLoading(true);
-
-      await connectWallet();
-
-      setChecked(true);
-    } catch (err) {
-      console.error(err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to connect wallet.'
-      );
-      setChecked(false);
-    } finally {
-      setLoading(false);
-    }
+  function checkPolicy() {
+    setError("");
+    setChecked(true);
+    setExecuted(false);
+    setTransactionHash("");
   }
 
   async function executePayment() {
-    if (!policy.allowed) return;
-
     try {
-      setError('');
-      setLoading(true);
+      setError("");
+      setExecuting(true);
       setExecuted(false);
-      setTxHash('');
+      setTransactionHash("");
 
-      const {
-        walletClient,
-        account,
+      if (!policy.allowed) {
+        setError("Payment is blocked by policy.");
+        return;
+      }
+
+      if (!window.ethereum) {
+        setError("MetaMask is not installed.");
+        return;
+      }
+
+      const destinationAddress =
+        destination.trim() as Address;
+
+      /*
+       * Create MetaMask wallet client.
+       */
+      const walletClient = createWalletClient({
+        chain: arbitrumSepolia,
+        transport: custom(window.ethereum),
+      });
+
+      /*
+       * Make sure MetaMask is connected to Arbitrum Sepolia.
+       */
+      const currentChainId =
+        await walletClient.getChainId();
+
+      if (currentChainId !== arbitrumSepolia.id) {
+        try {
+          await walletClient.switchChain({
+            id: arbitrumSepolia.id,
+          });
+        } catch {
+          setError(
+            "Please switch MetaMask to Arbitrum Sepolia and try again."
+          );
+          return;
+        }
+      }
+
+      /*
+       * Request the connected MetaMask account.
+       */
+      const [account] =
+        await walletClient.requestAddresses();
+
+      if (!account) {
+        setError("No MetaMask account found.");
+        return;
+      }
+
+      setWalletAddress(account);
+
+      /*
+       * Read token decimals and current APXS balance.
+       */
+      const [tokenDecimals, rawBalance] =
+        await Promise.all([
+          apxsPublicClient.readContract({
+            address: APXS_CONTRACT_ADDRESS,
+            abi: APXS_ABI,
+            functionName: "decimals",
+          }),
+
+          apxsPublicClient.readContract({
+            address: APXS_CONTRACT_ADDRESS,
+            abi: APXS_ABI,
+            functionName: "balanceOf",
+            args: [account],
+          }),
+        ]);
+
+      setDecimals(tokenDecimals);
+
+      const formattedBalance = formatUnits(
         rawBalance,
-        tokenDecimals,
-      } = await connectWallet();
-
-      const value = parseUnits(
-        amount.trim(),
         tokenDecimals
       );
 
-      if (value > rawBalance) {
-        throw new Error(
-          `Insufficient APXS balance. Available: ${formatUnits(
-            rawBalance,
-            tokenDecimals
-          )} APXS`
+      setTokenBalance(formattedBalance);
+
+      /*
+       * Convert human-readable APXS amount
+       * into ERC-20 base units.
+       */
+      const transferAmount = parseUnits(
+        amount,
+        tokenDecimals
+      );
+
+      /*
+       * Make sure the connected wallet actually
+       * has enough APXS before opening MetaMask.
+       */
+      if (rawBalance < transferAmount) {
+        setError(
+          `Insufficient APXS balance. Available: ${formattedBalance} APXS.`
         );
+        return;
       }
 
-      const hash = await walletClient.writeContract({
-        account,
-        address: APXS_CONTRACT_ADDRESS,
-        abi: APXS_ABI,
-        functionName: 'transfer',
-        args: [
-          destination.trim() as Address,
-          value,
-        ],
-        chain: arbitrumSepolia,
-      });
+      /*
+       * REAL ERC-20 TRANSFER
+       *
+       * This opens MetaMask.
+       *
+       * The user must manually confirm the transaction.
+       */
+      
 
-      setTxHash(hash);
+const block = await apxsPublicClient.getBlock();
 
+if (block.baseFeePerGas == null) {
+  throw new Error('Unable to read current network base fee.');
+}
+
+const maxPriorityFeePerGas = BigInt(1000000);
+const maxFeePerGas =
+  block.baseFeePerGas * BigInt(2) + maxPriorityFeePerGas;
+const hash = await walletClient.writeContract({
+  account,
+  address: APXS_CONTRACT_ADDRESS,
+  abi: APXS_ABI,
+  functionName: 'transfer',
+  args: [
+    destination.trim() as Address,
+        transferAmount,
+  ],
+  chain: arbitrumSepolia,
+  maxFeePerGas,
+  maxPriorityFeePerGas,
+});
+
+      setTransactionHash(hash);
+
+      /*
+       * Wait until the transaction is mined.
+       */
       await apxsPublicClient.waitForTransactionReceipt({
         hash,
       });
 
-      setDailySpent((previous) => previous + numericAmount);
       setExecuted(true);
-
-      const updatedBalance =
-        await apxsPublicClient.readContract({
-          address: APXS_CONTRACT_ADDRESS,
-          abi: APXS_ABI,
-          functionName: 'balanceOf',
-          args: [account],
-        });
-
-      setWalletBalance(
-        formatUnits(updatedBalance, tokenDecimals)
-      );
     } catch (err) {
       console.error(err);
 
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'APXS transaction failed.'
-      );
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(
+          "Transaction failed or was rejected."
+        );
+      }
     } finally {
-      setLoading(false);
+      setExecuting(false);
     }
   }
 
@@ -247,8 +271,9 @@ export function AgentPaymentConsole() {
             </h2>
 
             <p className="mt-2 text-sm text-zinc-400 max-w-2xl leading-relaxed">
-              Test a policy-controlled APXS payment flow on
-              Arbitrum Sepolia.
+              Test a policy-controlled payment flow where an AI
+              agent can only spend within operator-defined
+              boundaries.
             </p>
           </div>
 
@@ -260,6 +285,7 @@ export function AgentPaymentConsole() {
       </div>
 
       <div className="grid lg:grid-cols-2">
+        {/* Agent + Policy */}
         <div className="p-6 sm:p-8 border-b lg:border-b-0 lg:border-r border-white/[0.08]">
           <div className="flex items-center gap-2 text-sm font-semibold mb-5">
             <ShieldCheck className="w-4 h-4 text-[#7B5CFA]" />
@@ -271,9 +297,11 @@ export function AgentPaymentConsole() {
               <div className="text-[11px] uppercase tracking-wider text-zinc-500">
                 Agent
               </div>
+
               <div className="mt-1 font-mono text-sm">
                 Agent-001
               </div>
+
               <div className="mt-2 text-xs text-emerald-400">
                 ● Active
               </div>
@@ -281,18 +309,12 @@ export function AgentPaymentConsole() {
 
             <div className="rounded-2xl border border-white/[0.07] bg-black/20 p-4">
               <div className="text-[11px] uppercase tracking-wider text-zinc-500">
-                Agent Wallet
+                Connected Wallet
               </div>
 
               <div className="mt-1 font-mono text-xs text-zinc-300 break-all">
-                {walletAddress ?? 'Connect wallet to load'}
+                {walletAddress || "Connect via MetaMask when executing"}
               </div>
-
-              {walletAddress && (
-                <div className="mt-2 text-xs text-zinc-500">
-                  Balance: {walletBalance} APXS
-                </div>
-              )}
             </div>
 
             <div className="grid sm:grid-cols-2 gap-3">
@@ -304,7 +326,7 @@ export function AgentPaymentConsole() {
                 </div>
 
                 <div className="mt-1 font-mono text-lg">
-                  {DAILY_LIMIT - dailySpent} APXS
+                  100 APXS
                 </div>
               </div>
 
@@ -316,23 +338,26 @@ export function AgentPaymentConsole() {
                 </div>
 
                 <div className="mt-1 font-mono text-lg">
-                  {PER_TX_LIMIT} APXS
+                  10 APXS
                 </div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-emerald-400/10 bg-emerald-400/[0.04] p-4">
-              <div className="text-[11px] uppercase tracking-wider text-zinc-500">
-                Approved destination
-              </div>
+            {tokenBalance !== "—" && (
+              <div className="rounded-2xl border border-white/[0.07] bg-black/20 p-4">
+                <div className="text-[11px] uppercase tracking-wider text-zinc-500">
+                  Available APXS
+                </div>
 
-              <div className="mt-1 font-mono text-xs text-zinc-300 break-all">
-                {APPROVED_DESTINATION}
+                <div className="mt-1 font-mono text-lg">
+                  {tokenBalance} APXS
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
+        {/* Payment */}
         <div className="p-6 sm:p-8">
           <div className="flex items-center gap-2 text-sm font-semibold mb-5">
             <CircleDollarSign className="w-4 h-4 text-[#7B5CFA]" />
@@ -340,6 +365,7 @@ export function AgentPaymentConsole() {
           </div>
 
           <div className="space-y-4">
+            {/* Amount */}
             <div>
               <label className="block text-xs text-zinc-500 mb-2">
                 Amount
@@ -352,8 +378,8 @@ export function AgentPaymentConsole() {
                     setAmount(e.target.value);
                     setChecked(false);
                     setExecuted(false);
-                    setError('');
-                    setTxHash('');
+                    setError("");
+                    setTransactionHash("");
                   }}
                   type="number"
                   min="0"
@@ -367,6 +393,7 @@ export function AgentPaymentConsole() {
               </div>
             </div>
 
+            {/* Destination */}
             <div>
               <label className="block text-xs text-zinc-500 mb-2">
                 Destination
@@ -378,35 +405,24 @@ export function AgentPaymentConsole() {
                   setDestination(e.target.value);
                   setChecked(false);
                   setExecuted(false);
-                  setError('');
-                  setTxHash('');
+                  setError("");
+                  setTransactionHash("");
                 }}
                 placeholder="0x..."
                 className="w-full rounded-xl border border-white/[0.09] bg-black/20 px-4 py-3 text-xs font-mono outline-none"
               />
-
-              <button
-                type="button"
-                onClick={() => {
-                  setDestination(APPROVED_DESTINATION);
-                  setChecked(false);
-                  setExecuted(false);
-                  setError('');
-                }}
-                className="mt-2 text-xs text-[#9B86FF] hover:text-white transition"
-              >
-                Use approved destination
-              </button>
             </div>
 
+            {/* Policy button */}
             <button
               onClick={checkPolicy}
-              disabled={loading}
-              className="w-full rounded-xl bg-white text-black py-3 text-sm font-semibold hover:bg-zinc-200 transition disabled:opacity-60"
+              disabled={executing}
+              className="w-full rounded-xl bg-white text-black py-3 text-sm font-semibold hover:bg-zinc-200 transition disabled:opacity-50"
             >
-              {loading ? 'Checking...' : 'Check Policy'}
+              Check Policy
             </button>
 
+            {/* Policy evaluation */}
             {checked && (
               <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-4 space-y-3">
                 <div className="text-xs uppercase tracking-wider text-zinc-500 mb-2">
@@ -414,7 +430,7 @@ export function AgentPaymentConsole() {
                 </div>
 
                 <PolicyRow
-                  label="Amount within transaction limit"
+                  label="Amount within limit"
                   passed={policy.withinTxLimit}
                 />
 
@@ -436,35 +452,37 @@ export function AgentPaymentConsole() {
                 <div
                   className={`mt-4 rounded-xl p-3 text-sm font-semibold ${
                     policy.allowed
-                      ? 'bg-emerald-400/10 text-emerald-300'
-                      : 'bg-red-400/10 text-red-300'
+                      ? "bg-emerald-400/10 text-emerald-300"
+                      : "bg-red-400/10 text-red-300"
                   }`}
                 >
                   {policy.allowed
-                    ? '✓ Payment authorized by policy'
-                    : '✕ Payment blocked by policy'}
+                    ? "✓ Payment authorized by policy"
+                    : "✕ Payment blocked by policy"}
                 </div>
 
+                {/* Execute */}
                 {policy.allowed && !executed && (
                   <button
                     onClick={executePayment}
-                    disabled={loading}
-                    className="w-full rounded-xl bg-[#7B5CFA] text-white py-3 text-sm font-semibold hover:opacity-90 transition disabled:opacity-60"
+                    disabled={executing}
+                    className="w-full rounded-xl bg-[#7B5CFA] text-white py-3 text-sm font-semibold hover:opacity-90 transition disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {loading
-                      ? 'Waiting for transaction...'
-                      : 'Execute APXS Payment'}
+                    {executing
+                      ? "Waiting for MetaMask..."
+                      : "Execute APXS Payment"}
                   </button>
                 )}
 
-                {executed && txHash && (
+                {/* Receipt */}
+                {executed && transactionHash && (
                   <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-4">
                     <div className="flex items-center gap-2 text-emerald-300 text-sm font-semibold">
                       <CheckCircle2 className="w-4 h-4" />
-                      Payment confirmed on-chain
+                      Payment confirmed
                     </div>
 
-                    <div className="mt-3 space-y-2 text-xs">
+                    <div className="mt-3 space-y-3 text-xs">
                       <div className="flex justify-between gap-4">
                         <span className="text-zinc-500">
                           Amount
@@ -495,31 +513,46 @@ export function AgentPaymentConsole() {
                         </span>
                       </div>
 
-                      <div className="pt-2 border-t border-white/[0.08]">
+                      <div>
                         <div className="text-zinc-500 mb-1">
-                          Transaction hash
+                          Transaction
                         </div>
 
-                        <a
-                          href={`https://sepolia.arbiscan.io/tx/${txHash}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-mono text-[#9B86FF] break-all hover:underline"
-                        >
-                          {txHash}
-                        </a>
+                        <div className="font-mono text-zinc-300 break-all">
+                          {transactionHash}
+                        </div>
+                      </div>
+
+                      <a
+                        href={`https://sepolia.arbiscan.io/tx/${transactionHash}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex text-[#A78BFA] hover:underline"
+                      >
+                        View on Arbiscan →
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Error */}
+                {error && (
+                  <div className="rounded-xl border border-red-400/20 bg-red-400/10 p-4">
+                    <div className="flex items-start gap-2">
+                      <XCircle className="w-4 h-4 text-red-300 mt-0.5 shrink-0" />
+
+                      <div>
+                        <p className="text-sm font-semibold text-red-300">
+                          Transaction not completed
+                        </p>
+
+                        <p className="mt-1 text-xs text-red-200/80 break-words">
+                          {error}
+                        </p>
                       </div>
                     </div>
                   </div>
                 )}
-              </div>
-            )}
-
-            {error && (
-              <div className="rounded-xl border border-red-400/20 bg-red-400/10 p-3">
-                <p className="text-sm text-red-300 break-words">
-                  {error}
-                </p>
               </div>
             )}
           </div>

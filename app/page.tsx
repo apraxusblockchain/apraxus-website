@@ -51,9 +51,9 @@ export default function HomePage() {
           {/* Active Phase Pill */}
           <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#0D0C11]/90 border border-white/[0.1] text-xs font-mono text-[#7B5CFA] mb-8 backdrop-blur-xl shadow-2xl">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-zinc-200 font-semibold">Phase 02: Core Blockchain Prototype</span>
+            <span className="text-zinc-200 font-semibold">Phase 02: Core Infrastructure</span>
             <span className="text-zinc-500">•</span>
-            <span className="text-emerald-400 font-semibold">Building in Public</span>
+            <span className="text-emerald-400 font-semibold">Testnet Live</span>
           </div>
 
           {/* Master Headline */}
@@ -64,7 +64,7 @@ export default function HomePage() {
 
           {/* Subtitle / Positioning Thesis */}
           <p className="text-base sm:text-xl text-zinc-300 max-w-2xl font-sans font-normal leading-relaxed mb-10">
-            A high-throughput blockchain engineered in native Rust for AI agents, programmable payments, and secure machine-to-machine transactions under deterministic cryptographic policy bounds.
+            Infrastructure for autonomous software and machine-to-machine value. Apraxus combines agent-focused execution primitives with APXS, EVM wallet connectivity, and a live Arbitrum Sepolia testnet environment.
           </p>
 
           {/* Master Action CTAs */}
@@ -73,16 +73,16 @@ export default function HomePage() {
               href="#thesis"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-[#7B5CFA] hover:bg-[#6343EB] text-white font-semibold text-sm transition-all duration-300 shadow-[0_0_30px_rgba(123,92,250,0.4)] hover:shadow-[0_0_45px_rgba(123,92,250,0.7)] cursor-pointer"
             >
-              <span>Explore the Protocol Thesis</span>
+              <span>Explore Apraxus</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
 
             <Link
-              href="/technology"
+              href="/network"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-[#0D0C11]/80 hover:bg-[#14131A] text-white border border-white/10 font-semibold text-sm transition-all backdrop-blur-xl shadow-lg cursor-pointer"
             >
               <Terminal className="w-4 h-4 text-[#7B5CFA]" />
-              <span>Rust Core Prototype</span>
+              <span>Open Testnet Network</span>
             </Link>
           </div>
         </section>
@@ -149,13 +149,13 @@ export default function HomePage() {
         <section id="thesis" className="py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <span className="text-xs font-mono uppercase tracking-widest text-[#7B5CFA] font-semibold">
-              03 / Protocol Thesis
+              03 / Protocol Thesis · Target Architecture
             </span>
             <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white mt-3 font-sans">
               The Autonomous Execution Pipeline
             </h2>
             <p className="text-sm text-zinc-400 mt-3">
-              How human intent safely translates into verifiable, bounded machine execution.
+              The target execution model for translating human intent into verifiable, policy-bounded machine actions.
             </p>
           </div>
 
@@ -308,7 +308,7 @@ export default function HomePage() {
 
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <a
-                href="https://github.com"
+                href="https://github.com/apraxusblockchain/apraxus-website"
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-[#7B5CFA] hover:bg-[#6343EB] text-white font-semibold text-sm transition-all shadow-[0_0_30px_rgba(123,92,250,0.5)] cursor-pointer"

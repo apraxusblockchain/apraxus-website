@@ -106,7 +106,7 @@ impl PolicyEnvelope {
           </button>
         </div>
 
-        <StatusPill status="UNDER_DEVELOPMENT" />
+        <StatusPill status="TARGET_ARCHITECTURE" />
       </div>
 
       {/* Tab 1: Envelope Structure */}

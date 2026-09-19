@@ -5,6 +5,7 @@ import { Navbar } from '@/components/ui/Navbar';
 import { Footer } from '@/components/ui/Footer';
 import { SmoothScrollProvider } from '@/components/providers/SmoothScrollProvider';
 import { CustomCursor } from '@/components/ui/CustomCursor';
+import { WagmiProvider } from '@/components/providers/WagmiProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -35,7 +36,8 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark scroll-smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0A0A0D] text-white min-h-screen flex flex-col selection:bg-[#6B35D5] selection:text-white`}>
-        <SmoothScrollProvider>
+        <WagmiProvider>
+          <SmoothScrollProvider>
           {/* Subtle cinematic noise layer */}
           <div className="noise-bg" />
 
@@ -52,7 +54,8 @@ export default function RootLayout({
 
           {/* Global Footer */}
           <Footer />
-        </SmoothScrollProvider>
+          </SmoothScrollProvider>
+        </WagmiProvider>
       </body>
     </html>
   );

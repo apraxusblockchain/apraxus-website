@@ -9,7 +9,7 @@ export const PaymentFlow = () => {
       from: 'AI Research Agent',
       to: 'Inference Gateway',
       policy: 'Max 10 USDC/hr • Auto-Revoke on Error',
-      status: 'Designed for M2M',
+      status: 'Target Architecture',
       color: 'border-purple-500/30 text-purple-300'
     },
     {
@@ -18,7 +18,7 @@ export const PaymentFlow = () => {
       from: 'Orchestrator Agent',
       to: 'Data Scraper Agent',
       policy: 'Milestone Escrow • Cryptographic Proof',
-      status: 'Designed for M2M',
+      status: 'Target Architecture',
       color: 'border-cyan-500/30 text-cyan-300'
     },
     {
@@ -27,7 +27,7 @@ export const PaymentFlow = () => {
       from: 'Treasury Agent',
       to: 'DEX Router Contract',
       policy: 'Slippage < 0.5% • Allowlisted Pools Only',
-      status: 'Designed for M2M',
+      status: 'Target Architecture',
       color: 'border-purple-500/30 text-purple-300'
     },
     {
@@ -36,7 +36,7 @@ export const PaymentFlow = () => {
       from: 'Autonomous Drone',
       to: 'Charging Station',
       policy: 'Hardware Attestation • Pay-per-Watt',
-      status: 'Designed for M2M',
+      status: 'Target Architecture',
       color: 'border-emerald-500/30 text-emerald-300'
     }
   ];

@@ -282,7 +282,7 @@ export const AgentSimulator: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <Shield className="w-4 h-4" /> Evaluate & Execute Transaction
+                  <Shield className="w-4 h-4" /> Simulate Policy Decision
                 </>
               )}
             </button>

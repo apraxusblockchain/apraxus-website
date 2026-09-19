@@ -1,53 +1,29 @@
-'use client';
+import type { Address } from "viem";
 
-import { createEVMClient } from '@metamask/connect-evm';
-
-const DAPP_NAME = 'Apraxus';
-
-const DAPP_URL =
-  process.env.NEXT_PUBLIC_DAPP_URL ||
-  'https://apraxus-website.vercel.app';
-
-const ARBITRUM_SEPOLIA_CHAIN_ID = '0x66eee';
-
-let clientPromise: ReturnType<typeof createEVMClient> | null = null;
-
-export function getMetaMaskClient() {
-  if (typeof window === 'undefined') {
-    throw new Error('MetaMask client can only run in the browser.');
+export async function connectMetaMask(): Promise<{
+  provider: any;
+  account: Address;
+}> {
+  if (typeof window === "undefined") {
+    throw new Error("Wallet connection is only available in the browser.");
   }
 
-  if (!clientPromise) {
-    clientPromise = createEVMClient({
-      dapp: {
-        name: DAPP_NAME,
-        url: DAPP_URL,
-      },
-      api: {
-        supportedNetworks: {
-          [ARBITRUM_SEPOLIA_CHAIN_ID]:
-            'https://sepolia-rollup.arbitrum.io/rpc',
-        },
-      },
-    });
+  const ethereum = (window as any).ethereum;
+
+  if (!ethereum) {
+    throw new Error("MetaMask is not installed.");
   }
 
-  return clientPromise;
-}
-
-export async function connectMetaMask() {
-  const client = await getMetaMaskClient();
-
-  const { accounts, chainId } = await client.connect({
-    chainIds: [ARBITRUM_SEPOLIA_CHAIN_ID],
+  const accounts = await ethereum.request({
+    method: "eth_requestAccounts",
   });
 
-  const provider = client.getProvider();
+  if (!accounts?.length) {
+    throw new Error("No wallet account found.");
+  }
 
   return {
-    client,
-    provider,
-    account: accounts[0] ?? null,
-    chainId,
+    provider: ethereum,
+    account: accounts[0] as Address,
   };
 }
