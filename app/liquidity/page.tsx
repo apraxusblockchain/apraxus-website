@@ -786,8 +786,11 @@ export default function LiquidityPage() {
       const {
         provider,
         account,
-        chainId,
       } = await connectMetaMask();
+
+      const chainId = await provider.request({
+        method: 'eth_chainId',
+      });
 
       if (!account) {
         setError('No wallet account found.');
