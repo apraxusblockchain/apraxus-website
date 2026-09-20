@@ -1,2 +1,8 @@
 .gitignore
 tsconfig.tsbuildinfo
+tsconfig.json
+apraxus.ts
+client.ts
+config.ts
+index.ts
+examples/
