@@ -27,7 +27,7 @@ const examples = [
 }`,
   },
   {
-    title: "Webhook receiver",
+    title: "Webhook receiver / acknowledgement",
     method: "POST",
     path: "/api/v1/webhooks",
     body: `{
@@ -62,8 +62,8 @@ export default function DeveloperDocsPage() {
         </h1>
 
         <p className="mt-4 max-w-2xl text-white/60">
-          Integrate agents, payments and blockchain execution through the
-          Apraxus API.
+          Build and test agent-oriented payment, quote and execution workflows
+          through the Apraxus API.
         </p>
 
         <section className="mt-10 rounded-2xl border border-white/10 bg-white/[0.02] p-6">
@@ -172,18 +172,32 @@ export default function DeveloperDocsPage() {
 
         <section className="mt-12 rounded-2xl border border-white/10 p-6">
           <p className="text-sm uppercase tracking-[0.2em] text-white/40">
-            Response Tracking
+            Request Tracking
           </p>
 
           <p className="mt-4 text-white/60">
-            Payment, quote and execution requests return a unique requestId
-            for tracking and future webhook reconciliation.
+            Payment, quote and execution requests return a unique requestId that
+            can be used to identify the request during development and testing.
+          </p>
+        </section>
+
+        <section className="mt-12 rounded-2xl border border-[#7B5CFA]/20 bg-[#7B5CFA]/[0.04] p-6">
+          <p className="text-sm uppercase tracking-[0.2em] text-[#7B5CFA]">
+            Development Status
+          </p>
+
+          <p className="mt-4 text-white/60">
+            Apraxus is currently a development and testnet platform on
+            Arbitrum Sepolia. API payment and execution endpoints create
+            intents for testing, while the sandbox provides simulation-only
+            workflows. Production execution and mainnet infrastructure are
+            not enabled.
           </p>
         </section>
 
         <section className="mt-12 rounded-2xl border border-white/10 p-6">
           <p className="text-sm uppercase tracking-[0.2em] text-white/40">
-            Environment
+            Current Environment
           </p>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
