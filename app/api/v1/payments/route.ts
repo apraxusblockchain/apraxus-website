@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateApiKey } from "@/lib/api/auth";
+import { createRequestId } from "@/lib/api/request-id";
 
 export async function POST(request: NextRequest) {
   const auth = validateApiKey(request);
@@ -26,6 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
+      requestId: createRequestId("pay"),
       success: true,
       type: "payment_intent",
       status: "pending",
