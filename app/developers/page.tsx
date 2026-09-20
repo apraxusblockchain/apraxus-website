@@ -29,8 +29,8 @@ export default function DevelopersPage() {
         </h1>
 
         <p className="mt-4 max-w-2xl text-white/60">
-          Infrastructure for applications and autonomous software to interact
-          with wallets, policies, payments and blockchain execution.
+          Developer infrastructure for building and testing applications and
+          autonomous software workflows around wallets, payments and execution.
         </p>
 
         <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -54,7 +54,12 @@ export default function DevelopersPage() {
 
         <div className="mt-12 rounded-2xl border border-white/10 p-8">
           <p className="text-sm uppercase tracking-[0.2em] text-white/40">
-            Developer workflow
+            Target developer workflow
+          </p>
+
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-white/50">
+            A target workflow for connecting intent, agent context, policy,
+            wallet interaction and traceable execution outcomes.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
