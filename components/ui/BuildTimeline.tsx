@@ -3,48 +3,48 @@
 import React, { useState } from 'react';
 import { Milestone } from '@/lib/constants';
 import { StatusPill } from './StatusPill';
-import { GitCommit, ExternalLink, Calendar, Filter, Sparkles } from 'lucide-react';
+import { GitCommit, ExternalLink, Calendar, Filter } from 'lucide-react';
 
 const MILESTONES: Milestone[] = [
   {
-    id: 'dev-03',
-    number: 'Development #03',
-    title: 'Ed25519 Cryptographic Verification Pipeline & Replay Defense',
+    id: 'testnet-01',
+    number: 'Milestone #01',
+    title: 'APXS Testnet Deployment',
     date: 'August 2026',
-    summary: 'Implemented deterministic signature verification routines and sequential nonce ordering inside the transaction validation pool to eliminate replay vectors.',
+    summary: 'Deployed the APXS testnet token on Arbitrum Sepolia with a fixed 1 billion token supply and developer-facing contract verification.',
     status: 'SHIPPED',
-    evidenceUrl: 'https://github.com/apraxusblockchain/apraxus-website',
-    nextStep: 'Complete asynchronous TCP peer handshake protocol in Tokio.',
-    category: 'Cryptography',
+    evidenceUrl: 'https://sepolia.arbiscan.io/token/0xFE16213961cb4f9B15301f730a5977b9A145add5',
+    nextStep: 'Expand public testnet onboarding and developer documentation.',
+    category: 'Network',
   },
   {
-    id: 'dev-02',
-    number: 'Development #02',
-    title: 'Immutable Block Data Structures & Merkle Tree Root Hashing',
-    date: 'July 2026',
-    summary: 'Built the core Rust block header representation, bincode transaction serializer, and Merkle tree state accumulator for sub-second receipt generation.',
+    id: 'liquidity-01',
+    number: 'Milestone #02',
+    title: 'Testnet Liquidity & Swap Infrastructure',
+    date: 'August 2026',
+    summary: 'Established APXS/WETH testnet liquidity and verified token swap flows on Arbitrum Sepolia for development and integration testing.',
     status: 'SHIPPED',
-    evidenceUrl: 'https://github.com/apraxusblockchain/apraxus-website',
-    nextStep: 'Integrate cryptographic transaction verification.',
+    evidenceUrl: 'https://sepolia.arbiscan.io/token/0xFE16213961cb4f9B15301f730a5977b9A145add5',
+    nextStep: 'Continue testnet integration and developer workflow validation.',
     category: 'Core',
   },
   {
-    id: 'dev-01',
-    number: 'Development #01',
-    title: 'Genesis Architecture & Protocol Master Specification',
-    date: 'June 2026',
-    summary: 'Authored the formal Apraxus technical blueprint detailing autonomous agent policy bounds, tokenless initial testbed, and M2M settlement thesis.',
+    id: 'platform-01',
+    number: 'Milestone #03',
+    title: 'Developer Platform & API v1',
+    date: 'September 2026',
+    summary: 'Released the Apraxus API v1 foundation, SDK foundation, developer sandbox, API key flow, metrics tooling and testnet documentation.',
     status: 'SHIPPED',
     evidenceUrl: 'https://github.com/apraxusblockchain/apraxus-website',
-    nextStep: 'Initialize core Rust blockchain repository.',
-    category: 'Specification',
+    nextStep: 'Improve developer onboarding and prepare the platform for broader testnet usage.',
+    category: 'Core',
   },
 ];
 
 export const BuildTimeline: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
 
-  const categories = ['ALL', 'Core', 'Cryptography', 'Specification'];
+  const categories = ['ALL', 'Core', 'Network'];
 
   const filtered = selectedCategory === 'ALL' 
     ? MILESTONES 
@@ -116,7 +116,7 @@ export const BuildTimeline: React.FC = () => {
                   className="inline-flex items-center gap-1.5 text-xs font-mono text-[#38E8F8] hover:text-cyan-300 transition-colors pt-1"
                 >
                   <GitCommit className="w-3.5 h-3.5" />
-                  <span>View Commit Evidence</span>
+                  <span>View Evidence</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               )}

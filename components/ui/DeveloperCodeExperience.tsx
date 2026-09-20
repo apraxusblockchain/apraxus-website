@@ -5,103 +5,47 @@ import { Terminal, Copy, Check, Code2, ArrowRight, ShieldCheck, Sparkles, Layers
 import { StatusPill } from './StatusPill';
 
 const CODE_EXAMPLES = {
-  rust: {
-    filename: 'agent_daemon.rs',
-    lang: 'Rust Core SDK',
-    code: `use apraxus_sdk::prelude::*;
-use apraxus_policy::{PolicyEnvelope, SpendLimit};
-
-#[tokio::main]
-async fn main() -> Result<(), ApraxusError> {
-    // 1. Connect to local Apraxus testbed node
-    let client = ApraxusClient::connect("http://127.0.0.1:8545").await?;
-
-    // 2. Initialize Agent Wallet under Human Operator Root Key
-    let operator_key = Keypair::from_secret_env("MASTER_OPERATOR_SECRET")?;
-    let mut agent = AgentWallet::new("research-crawler-09", &operator_key);
-
-    // 3. Define and seal strict autonomous policy bounds
-    let policy = PolicyEnvelope::builder()
-        .max_hourly_spend(25.0) // USDC
-        .allow_destination("0x71C...OpenAIComputeGateway")
-        .allow_asset("USDC")
-        .require_multi_sig_above(100.0)
-        .build()?;
-
-    agent.bind_policy(policy).await?;
-
-    // 4. Autonomous Agent executes sub-second M2M micro-payment
-    let receipt = agent.transact_m2m(
-        "0x71C...OpenAIComputeGateway",
-        4.20,
-        "BATCH_INFERENCE_PAYMENT",
-    ).await?;
-
-    println!("Transaction Committed! TxHash: {}", receipt.tx_hash);
-    println!("State Merkle Root Sealed in Block #{}", receipt.block_number);
-    Ok(())
-}`
-  },
   typescript: {
-    filename: 'agent-executor.ts',
+    filename: 'apraxus-client.ts',
     lang: 'TypeScript SDK',
-    code: `import { ApraxusClient, PolicyEnvelope, AgentWallet } from '@apraxus/sdk';
+    code: `import { createApraxusClient } from '@apraxus/sdk';
 
-async function main() {
-  // 1. Initialize client gateway
-  const client = new ApraxusClient({ rpcUrl: 'https://testnet.apraxus.io' });
+const client = createApraxusClient('apx_your_api_key');
 
-  // 2. Derive ephemeral agent wallet bound to human root authority
-  const agent = await AgentWallet.derive({
-    identity: 'data-harvester-01',
-    operatorMasterKey: process.env.OPERATOR_MASTER_KEY!,
-  });
+const health = await client.health();
 
-  // 3. Cryptographically enforce spending ceiling
-  const policy = new PolicyEnvelope({
-    dailyCeiling: 50.0, // USDC
-    allowedTargets: ['0xOpenAIComputeGateway...'],
-    autoRevokeOnAnomaly: true,
-  });
+console.log(health);`
+  },
+  curl: {
+    filename: 'health.sh',
+    lang: 'API / cURL',
+    code: `curl https://apraxus-website.vercel.app/api/v1/health
 
-  await agent.attachPolicy(policy);
+# {
+#   "service": "Apraxus API",
+#   "version": "v1",
+#   "status": "operational",
+#   "network": "arbitrum-sepolia"
+# }`
+  },
+  sandbox: {
+    filename: 'sandbox.json',
+    lang: 'Sandbox',
+    code: `POST /api/v1/sandbox
 
-  // 4. Execute machine-to-machine settlement
-  const receipt = await agent.executeM2M({
-    to: '0xOpenAIComputeGateway...',
-    amount: 12.50,
-    action: 'INFERENCE_TOKEN_PURCHASE'
-  });
-
-  console.log(\`Execution Confirmed in \${receipt.latencyMs}ms! Hash: \${receipt.hash}\`);
+{
+  "action": "payment",
+  "agentId": "agent_demo_01",
+  "token": "APXS",
+  "amount": "10"
 }
 
-main();`
-  },
-  cli: {
-    filename: 'bash terminal',
-    lang: 'CLI Testbed',
-    code: `# 1. Start single-node local Apraxus testbed
-$ apraxus-node start --dev --bind 127.0.0.1:8545
-
-# 2. Derive a new autonomous agent envelope with spend constraints
-$ apraxus-cli agent create \
-    --name "crawler-01" \
-    --operator "0xMasterOperator..." \
-    --spend-limit "50 USDC/24h" \
-    --allowlist "0x71C...OpenAIComputeGateway"
-
-# 3. Simulate and verify policy bounds before block submission
-$ apraxus-cli policy verify --agent "crawler-01" --amount 15.0 --to "0x71C...OpenAIComputeGateway"
-[OK] Policy Envelope #POL-9921: 200 AUTHORIZED (Latency: 3.2ms)
-
-# 4. Inspect block header and Merkle state receipts
-$ apraxus-cli block latest --verbose`
+# Testnet simulation only.`
   }
 };
 
 export const DeveloperCodeExperience: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'rust' | 'typescript' | 'cli'>('rust');
+  const [activeTab, setActiveTab] = useState<'typescript' | 'curl' | 'sandbox'>('typescript');
   const [copied, setCopied] = useState(false);
 
   const currentSnippet = CODE_EXAMPLES[activeTab];
@@ -126,32 +70,32 @@ export const DeveloperCodeExperience: React.FC = () => {
               Developer Experience
             </span>
             <h3 className="text-2xl sm:text-4xl font-bold tracking-tight text-white font-sans">
-              Built for Modern Agent Frameworks
+              Build with the Apraxus Developer Platform
             </h3>
           </div>
 
           <p className="text-sm text-zinc-400 leading-relaxed font-sans">
-            Integrate Apraxus policy-controlled wallets seamlessly into LangChain, AutoGen, CrewAI, or standalone Rust/Python pipelines in less than 10 lines of code.
+            Use the Apraxus API and SDK foundation to build and test agent-oriented payments, quotes and execution workflows on Arbitrum Sepolia.
           </p>
 
           <div className="flex flex-col gap-3 pt-2">
             <div className="flex items-center gap-3 text-xs font-mono text-zinc-300">
               <span className="w-5 h-5 rounded-full bg-[#7B5CFA]/20 text-[#7B5CFA] flex items-center justify-center font-bold text-[11px]">1</span>
-              <span>Sub-second cryptographic verification</span>
+              <span>API v1 developer interface</span>
             </div>
             <div className="flex items-center gap-3 text-xs font-mono text-zinc-300">
               <span className="w-5 h-5 rounded-full bg-[#38E8F8]/20 text-[#38E8F8] flex items-center justify-center font-bold text-[11px]">2</span>
-              <span>Deterministic zero-trust spend ceilings</span>
+              <span>Testnet payment and quote workflows</span>
             </div>
             <div className="flex items-center gap-3 text-xs font-mono text-zinc-300">
               <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[11px]">3</span>
-              <span>Instant multi-sig human escalation triggers</span>
+              <span>Sandbox-based integration testing</span>
             </div>
           </div>
 
           <div className="pt-2">
             <a
-              href="/docs"
+              href="/developers/docs"
               className="inline-flex items-center gap-2 text-xs font-mono font-semibold uppercase tracking-wider text-[#7B5CFA] hover:text-white transition-colors"
             >
               <span>Explore Developer Documentation</span>
@@ -171,7 +115,7 @@ export const DeveloperCodeExperience: React.FC = () => {
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
               </div>
 
-              {(['rust', 'typescript', 'cli'] as const).map((tab) => (
+              {(['typescript', 'curl', 'sandbox'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
