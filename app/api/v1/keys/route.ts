@@ -8,6 +8,7 @@ export async function POST() {
     success: true,
     apiKey,
     network: "arbitrum-sepolia",
-    warning: "Store this key securely. It will only be shown once.",
+    environment: "development",
+    warning: "Development/testnet key only. Production key management is not enabled yet.",
   });
 }
