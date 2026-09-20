@@ -1256,6 +1256,15 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
             transaction fees, then use the APXS testnet contract above for
             development and integration testing.
           </p>
+
+          <a
+            href="https://ethglobal.com/faucet/arbitrum-sepolia-421614"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-6 inline-flex w-fit rounded-xl border border-white/15 px-5 py-3 text-sm font-medium transition hover:bg-white/5"
+          >
+            Get Testnet ETH →
+          </a>
         </div>
 
         {/* ========================================================= */}
