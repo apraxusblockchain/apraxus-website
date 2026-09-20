@@ -66,6 +66,30 @@ export default function DeveloperDashboardPage() {
 
         <div className="mt-12 rounded-2xl border border-white/10 p-6">
           <p className="text-sm uppercase tracking-[0.2em] text-white/40">
+            Get Started
+          </p>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-4">
+            {[
+              ["01", "Read the Docs", "/developers/docs"],
+              ["02", "Create API Key", "/developers/keys"],
+              ["03", "Run Sandbox", "/developers/sandbox"],
+              ["04", "Build Integration", "/developers/docs"],
+            ].map(([number, title, href]) => (
+              <a
+                key={number}
+                href={href}
+                className="rounded-xl border border-white/10 p-4 transition hover:border-white/20 hover:bg-white/[0.03]"
+              >
+                <span className="text-xs text-white/30">{number}</span>
+                <p className="mt-3 text-sm font-medium">{title}</p>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-12 rounded-2xl border border-white/10 p-6">
+          <p className="text-sm uppercase tracking-[0.2em] text-white/40">
             Network
           </p>
 
