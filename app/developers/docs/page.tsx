@@ -1,5 +1,11 @@
 const examples = [
   {
+    title: "Authentication",
+    method: "HEADER",
+    path: "Authorization",
+    body: `Authorization: Bearer apx_your_api_key`,
+  },
+  {
     title: "Create payment intent",
     method: "POST",
     path: "/api/v1/payments",
@@ -18,6 +24,15 @@ const examples = [
   "tokenIn": "WETH",
   "tokenOut": "APXS",
   "amountIn": "0.0001"
+}`,
+  },
+  {
+    title: "Webhook receiver",
+    method: "POST",
+    path: "/api/v1/webhooks",
+    body: `{
+  "event": "payment.completed",
+  "status": "completed"
 }`,
   },
   {
@@ -75,6 +90,17 @@ export default function DeveloperDocsPage() {
             </section>
           ))}
         </div>
+
+        <section className="mt-12 rounded-2xl border border-white/10 p-6">
+          <p className="text-sm uppercase tracking-[0.2em] text-white/40">
+            Response Tracking
+          </p>
+
+          <p className="mt-4 text-white/60">
+            Payment, quote and execution requests return a unique requestId
+            for tracking and future webhook reconciliation.
+          </p>
+        </section>
 
         <section className="mt-12 rounded-2xl border border-white/10 p-6">
           <p className="text-sm uppercase tracking-[0.2em] text-white/40">
