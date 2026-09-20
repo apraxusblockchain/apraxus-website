@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateApiKey } from "@/lib/api/auth";
 import { createRequestId } from "@/lib/api/request-id";
 import { apiError } from "@/lib/api/errors";
+import { recordApiRequest } from "@/lib/api/metrics";
 
 export async function POST(request: NextRequest) {
   const auth = validateApiKey(request);
@@ -15,6 +16,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    recordApiRequest("/api/v1/quotes");
     const body = await request.json();
 
     const { tokenIn, tokenOut, amountIn } = body;
