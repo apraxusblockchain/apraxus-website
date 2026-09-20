@@ -21,7 +21,7 @@ export default function DeveloperDashboardPage() {
     {
       title: "API Metrics",
       description: "View development request activity and API usage tracking.",
-      href: "/api/v1/metrics",
+      href: "/developers/metrics",
       action: "View Metrics",
     },
   ];
