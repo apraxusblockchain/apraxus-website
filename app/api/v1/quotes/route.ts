@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateApiKey } from "@/lib/api/auth";
 import { createRequestId } from "@/lib/api/request-id";
+import { apiError } from "@/lib/api/errors";
 
 export async function POST(request: NextRequest) {
   const auth = validateApiKey(request);
 
   if (!auth.valid) {
-    return NextResponse.json(
-      { error: auth.error },
-      { status: 401 }
+    return apiError(
+      auth.error ?? "Unauthorized",
+      401,
+      "UNAUTHORIZED"
     );
   }
 
@@ -18,9 +20,10 @@ export async function POST(request: NextRequest) {
     const { tokenIn, tokenOut, amountIn } = body;
 
     if (!tokenIn || !tokenOut || !amountIn) {
-      return NextResponse.json(
-        { error: "tokenIn, tokenOut and amountIn are required" },
-        { status: 400 }
+      return apiError(
+        "tokenIn, tokenOut and amountIn are required",
+        400,
+        "INVALID_REQUEST"
       );
     }
 
@@ -36,9 +39,10 @@ export async function POST(request: NextRequest) {
       execution: "testnet",
     });
   } catch {
-    return NextResponse.json(
-      { error: "Invalid request body" },
-      { status: 400 }
+    return apiError(
+      "Invalid request body",
+      400,
+      "INVALID_JSON"
     );
   }
 }
