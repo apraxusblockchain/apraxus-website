@@ -93,6 +93,13 @@ export default function DevelopersPage() {
           >
             Open Testnet
           </a>
+
+          <a
+            href="/developers/sandbox"
+            className="rounded-xl border border-white/15 px-5 py-3 text-sm transition hover:bg-white/5"
+          >
+            Developer Sandbox
+          </a>
         <div className="mt-10">
           <a
             href="/developers/keys"
