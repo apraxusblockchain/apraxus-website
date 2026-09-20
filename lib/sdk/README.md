@@ -4,56 +4,26 @@ Developer SDK foundation for Apraxus.
 
 ## Network
 
-Current environment:
-
 - Arbitrum Sepolia
 - API version: v1
 
-## Client
+> Development/testnet only. Production execution and mainnet infrastructure are not enabled yet.
 
-```ts
-import { ApraxusClient } from "./";
+## Installation
 
-const apraxus = new ApraxusClient();
+```bash
+npm install @apraxus/sdk
+```
 
-await apraxus.health();
-
+## Available Operations
 
 - Payment intents
 - Token quotes
 - Execution intents
+- API health checks
 
-The current SDK is a development/testnet foundation. Production execution,
-authentication, persistence and mainnet infrastructure are not yet enabled.
+## Development Status
 
-## Agent Flow Example
+The current SDK is a development/testnet foundation for building and testing Apraxus integrations on Arbitrum Sepolia.
 
-```ts
-import { ApraxusClient } from "@apraxus/sdk";
-
-const apraxus = new ApraxusClient({
-  baseUrl: "/api/v1",
-});
-
-const quote = await apraxus.getQuote({
-  tokenIn: "WETH",
-  tokenOut: "APXS",
-  amountIn: "0.0001",
-});
-
-const payment = await apraxus.createPayment({
-  token: "APXS",
-  amount: "10",
-  recipient: "0x...",
-  agentId: "agent_demo_01",
-});
-
-const execution = await apraxus.createExecution({
-  agentId: "agent_demo_01",
-  wallet: "0x...",
-  token: "APXS",
-  amount: "10",
-  recipient: "0x...",
-});
-This flow creates API intents only. It does not represent a production
-autonomous payment or mainnet execution.
+Production authentication, persistence, autonomous execution and mainnet infrastructure are planned for later stages.
