@@ -1184,7 +1184,7 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
               </span>
 
               <span className="text-white font-mono">
-                Live Rust API
+                Live Apraxus telemetry API
               </span>
             </div>
 
@@ -1285,7 +1285,7 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
         <div className="text-center">
           <p className="text-xs text-zinc-600 font-mono">
             Network telemetry refreshes automatically every 10 seconds.
-            Wallet queries are fetched on demand from the live Rust API.
+            Wallet queries are fetched on demand from the live telemetry API.
           </p>
         </div>
 
