@@ -93,6 +93,28 @@ export default function DeveloperDocsPage() {
 
         <section className="mt-12 rounded-2xl border border-white/10 p-6">
           <p className="text-sm uppercase tracking-[0.2em] text-white/40">
+            Sandbox
+          </p>
+
+          <p className="mt-4 text-white/60">
+            Test payment, quote and execution flows without submitting a real
+            blockchain transaction. Sandbox responses are simulations only.
+          </p>
+
+          <pre className="mt-4 overflow-x-auto rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/70">
+            <code>{`POST /api/v1/sandbox
+
+{
+  "action": "payment",
+  "agentId": "agent_demo_01",
+  "token": "APXS",
+  "amount": "10"
+}`}</code>
+          </pre>
+        </section>
+
+        <section className="mt-12 rounded-2xl border border-white/10 p-6">
+          <p className="text-sm uppercase tracking-[0.2em] text-white/40">
             Response Tracking
           </p>
 
