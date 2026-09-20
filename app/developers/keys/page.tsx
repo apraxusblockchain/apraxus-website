@@ -4,6 +4,7 @@ import { useState } from "react";
 
 export default function DeveloperKeysPage() {
   const [apiKey, setApiKey] = useState("");
+  const [copied, setCopied] = useState(false);
 
   async function createKey() {
     const response = await fetch("/api/v1/keys", {
@@ -14,7 +15,14 @@ export default function DeveloperKeysPage() {
 
     if (data.apiKey) {
       setApiKey(data.apiKey);
+      setCopied(false);
     }
+  }
+
+  async function copyKey() {
+    if (!apiKey) return;
+    await navigator.clipboard.writeText(apiKey);
+    setCopied(true);
   }
 
   return (
@@ -49,6 +57,13 @@ export default function DeveloperKeysPage() {
               <code className="mt-3 block overflow-x-auto rounded-xl border border-white/10 p-4 text-sm">
                 {apiKey}
               </code>
+
+              <button
+                onClick={copyKey}
+                className="mt-4 rounded-xl border border-white/15 px-4 py-2 text-sm transition hover:bg-white/5"
+              >
+                {copied ? "Copied" : "Copy API Key"}
+              </button>
             </div>
           )}
         </section>
