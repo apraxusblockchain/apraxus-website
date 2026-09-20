@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       received: true,
       event: {
         id: event.id ?? crypto.randomUUID(),
-        type: event.type ?? "unknown",
+        type: event.type ?? event.event ?? "unknown",
         status: event.status ?? "received",
         timestamp: new Date().toISOString(),
       },
