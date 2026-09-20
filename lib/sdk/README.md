@@ -9,11 +9,9 @@ Developer SDK foundation for Apraxus.
 
 > Development/testnet only. Production execution and mainnet infrastructure are not enabled yet.
 
-## Installation
+## Development
 
-```bash
-npm install @apraxus/sdk
-```
+The SDK is currently available as part of the Apraxus repository for development and testnet integration.
 
 ## Available Operations
 
