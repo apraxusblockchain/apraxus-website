@@ -1217,6 +1217,47 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
           </div>
         </div>
 
+        <div className="mt-6 glass-panel p-8 rounded-2xl border border-white/10">
+          <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
+            Testnet Setup
+          </span>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
+            <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+              <span className="text-[10px] text-zinc-500 font-mono block mb-2">
+                NETWORK
+              </span>
+              <span className="text-white font-mono">
+                Arbitrum Sepolia
+              </span>
+            </div>
+
+            <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+              <span className="text-[10px] text-zinc-500 font-mono block mb-2">
+                CHAIN ID
+              </span>
+              <span className="text-white font-mono">
+                421614
+              </span>
+            </div>
+
+            <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+              <span className="text-[10px] text-zinc-500 font-mono block mb-2">
+                TOKEN
+              </span>
+              <span className="text-white font-mono">
+                APXS · 8 decimals
+              </span>
+            </div>
+          </div>
+
+          <p className="mt-5 text-sm leading-6 text-zinc-400">
+            Connect a wallet to Arbitrum Sepolia, obtain testnet ETH for
+            transaction fees, then use the APXS testnet contract above for
+            development and integration testing.
+          </p>
+        </div>
+
         {/* ========================================================= */}
         {/* ERROR */}
         {/* ========================================================= */}
