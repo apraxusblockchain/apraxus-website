@@ -100,6 +100,13 @@ export default function DevelopersPage() {
           >
             Developer Sandbox
           </a>
+
+          <a
+            href="/developers/dashboard"
+            className="rounded-xl border border-white/15 px-5 py-3 text-sm transition hover:bg-white/5"
+          >
+            Developer Dashboard
+          </a>
         <div className="mt-10">
           <a
             href="/developers/keys"
