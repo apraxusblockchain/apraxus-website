@@ -107,15 +107,15 @@ export default function DevelopersPage() {
           >
             Developer Dashboard
           </a>
-        <div className="mt-10">
+        </div>
+
+        <div className="mt-6">
           <a
             href="/developers/keys"
             className="inline-flex rounded-xl border border-white/15 px-5 py-3 text-sm transition hover:bg-white/5"
           >
             Manage API Keys
           </a>
-        </div>
-
         </div>
       </div>
     </main>
