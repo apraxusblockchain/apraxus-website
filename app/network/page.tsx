@@ -1191,6 +1191,32 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
           </div>
         </div>
 
+        <div className="mt-6 glass-panel p-8 rounded-2xl border border-white/10">
+          <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
+            APXS Testnet Contract
+          </span>
+
+          <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm text-zinc-400">
+                Arbitrum Sepolia
+              </p>
+              <p className="mt-2 break-all font-mono text-sm text-white">
+                0xFE16213961cb4f9B15301f730a5977b9A145add5
+              </p>
+            </div>
+
+            <a
+              href="https://sepolia.arbiscan.io/token/0xFE16213961cb4f9B15301f730a5977b9A145add5"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex w-fit rounded-xl border border-white/15 px-5 py-3 text-sm transition hover:bg-white/5"
+            >
+              View on Arbiscan →
+            </a>
+          </div>
+        </div>
+
         {/* ========================================================= */}
         {/* ERROR */}
         {/* ========================================================= */}
