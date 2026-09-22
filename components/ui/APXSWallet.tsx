@@ -189,7 +189,7 @@ export default function APXSWallet() {
   const [swapQuoteRaw, setSwapQuoteRaw] =
     useState<bigint | null>(null);
 
-  const [showWallets, setShowWallets] = useState(false);
+  const [showWallets, setShowWallets] = useState(true);
 
   const supportedChain = chainId === arbitrumSepolia.id;
 
@@ -894,13 +894,15 @@ export default function APXSWallet() {
         <div className="space-y-4">
           <button
             type="button"
-            onClick={() => handleConnect()}
+            onClick={() => setShowWallets((value) => !value)}
             disabled={isConnecting}
             className="w-full rounded-2xl bg-violet-600 px-5 py-4 text-sm font-semibold transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isConnecting
               ? "Connecting..."
-              : "Connect EVM Wallet"}
+              : showWallets
+                ? "Choose EVM Wallet"
+                : "Connect EVM Wallet"}
           </button>
 
           {showWallets && (
