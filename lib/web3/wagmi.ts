@@ -1,10 +1,15 @@
-import { createConfig, http } from 'wagmi';
+"use client";
+
+import { createConfig, http } from "wagmi";
 import {
   coinbaseWallet,
   metaMask,
   walletConnect,
-} from 'wagmi/connectors';
-import { arbitrumSepolia } from 'wagmi/chains';
+} from "wagmi/connectors";
+import { arbitrumSepolia } from "wagmi/chains";
+
+const projectId =
+  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
 
 export const config = createConfig({
   chains: [arbitrumSepolia],
@@ -12,17 +17,23 @@ export const config = createConfig({
   connectors: [
     metaMask(),
     coinbaseWallet({
-      appName: 'Apraxus',
+      appName: "Apraxus",
     }),
-    walletConnect({
-      projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
-      showQrModal: true,
-    }),
+    ...(projectId
+      ? [
+          walletConnect({
+            projectId,
+            showQrModal: true,
+          }),
+        ]
+      : []),
   ],
 
   transports: {
     [arbitrumSepolia.id]: http(
-      'https://sepolia-rollup.arbitrum.io/rpc'
+      "https://sepolia-rollup.arbitrum.io/rpc"
     ),
   },
+
+  ssr: true,
 });
