@@ -41,3 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 lib/web3/*.bak
+
+# Hardhat generated files
+artifacts/
+cache/
