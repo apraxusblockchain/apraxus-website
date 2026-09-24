@@ -20,12 +20,13 @@ import {
   type Address,
 } from "viem";
 
-import { arbitrumSepolia } from "viem/chains";
+import { arbitrumSepolia, bscTestnet } from "viem/chains";
 
 import {
   APXS_ABI,
-  APXS_CONTRACT_ADDRESS,
+  APXS_CHAINS,
   apxsPublicClient,
+  bnbApxsPublicClient,
 } from "@/lib/web3/apxs";
 
 declare global {
@@ -112,30 +113,52 @@ export function AgentPaymentConsole() {
         destination.trim() as Address;
 
       /*
-       * Create MetaMask wallet client.
+       * Detect the MetaMask network first.
+       */
+      const detectedChainId = await new Promise<number>((resolve) => {
+        window.ethereum.request({
+          method: "eth_chainId",
+        }).then((value: string) => resolve(Number(value)))
+         .catch(() => resolve(0));
+      });
+
+      const activeChain =
+        detectedChainId === bscTestnet.id
+          ? bscTestnet
+          : arbitrumSepolia;
+
+      const activeApxsAddress =
+        detectedChainId === bscTestnet.id
+          ? APXS_CHAINS.bnbTestnet.address
+          : APXS_CHAINS.arbitrumSepolia.address;
+
+      const activePublicClient =
+        detectedChainId === bscTestnet.id
+          ? bnbApxsPublicClient
+          : apxsPublicClient;
+
+      /*
+       * Create MetaMask wallet client for the detected network.
        */
       const walletClient = createWalletClient({
-        chain: arbitrumSepolia,
+        chain: activeChain,
         transport: custom(window.ethereum),
       });
 
       /*
-       * Make sure MetaMask is connected to Arbitrum Sepolia.
+       * Only allow the two supported APXS testnets.
        */
       const currentChainId =
         await walletClient.getChainId();
 
-      if (currentChainId !== arbitrumSepolia.id) {
-        try {
-          await walletClient.switchChain({
-            id: arbitrumSepolia.id,
-          });
-        } catch {
-          setError(
-            "Please switch MetaMask to Arbitrum Sepolia and try again."
-          );
-          return;
-        }
+      if (
+        currentChainId !== arbitrumSepolia.id &&
+        currentChainId !== bscTestnet.id
+      ) {
+        setError(
+          "Please switch MetaMask to Arbitrum Sepolia or BNB Testnet and try again."
+        );
+        return;
       }
 
       /*
@@ -156,14 +179,14 @@ export function AgentPaymentConsole() {
        */
       const [tokenDecimals, rawBalance] =
         await Promise.all([
-          apxsPublicClient.readContract({
-            address: APXS_CONTRACT_ADDRESS,
+          activePublicClient.readContract({
+            address: activeApxsAddress,
             abi: APXS_ABI,
             functionName: "decimals",
           }),
 
-          apxsPublicClient.readContract({
-            address: APXS_CONTRACT_ADDRESS,
+          activePublicClient.readContract({
+            address: activeApxsAddress,
             abi: APXS_ABI,
             functionName: "balanceOf",
             args: [account],
@@ -208,7 +231,7 @@ export function AgentPaymentConsole() {
        */
       
 
-const block = await apxsPublicClient.getBlock();
+const block = await activePublicClient.getBlock();
 
 if (block.baseFeePerGas == null) {
   throw new Error('Unable to read current network base fee.');
@@ -219,7 +242,7 @@ const maxFeePerGas =
   block.baseFeePerGas * BigInt(2) + maxPriorityFeePerGas;
 const hash = await walletClient.writeContract({
   account,
-  address: APXS_CONTRACT_ADDRESS,
+  address: activeApxsAddress,
   abi: APXS_ABI,
   functionName: 'transfer',
   args: [
@@ -236,7 +259,7 @@ const hash = await walletClient.writeContract({
       /*
        * Wait until the transaction is mined.
        */
-      await apxsPublicClient.waitForTransactionReceipt({
+      await activePublicClient.waitForTransactionReceipt({
         hash,
       });
 
