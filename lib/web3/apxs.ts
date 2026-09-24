@@ -1,8 +1,11 @@
 import { createPublicClient, http } from "viem";
-import { arbitrumSepolia } from "viem/chains";
+import { arbitrumSepolia, bscTestnet } from "viem/chains";
+import { APXS_CHAINS } from "@/lib/web3/chains/apxs";
 
 export const APXS_CONTRACT_ADDRESS =
   process.env.NEXT_PUBLIC_APXS_CONTRACT as `0x${string}`;
+
+export { APXS_CHAINS };
 
 export const APXS_ABI = [
   {
@@ -76,5 +79,11 @@ export const APXS_ABI = [
 
 export const apxsPublicClient = createPublicClient({
   chain: arbitrumSepolia,
+  transport: http(),
+});
+
+
+export const bnbApxsPublicClient = createPublicClient({
+  chain: bscTestnet,
   transport: http(),
 });
