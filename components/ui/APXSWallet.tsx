@@ -1107,8 +1107,9 @@ export default function APXSWallet() {
                 </div>
               </div>
 
-              <div className="mb-7 rounded-2xl border border-white/10 bg-white/[0.02] p-5">
-                <div className="mb-5 flex items-center justify-between">
+              {chainId !== bscTestnet.id && (
+                <div className="mb-7 rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+                  <div className="mb-5 flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.15em] text-white/35">
                       Approval Pipeline
@@ -1184,8 +1185,9 @@ export default function APXSWallet() {
                       approveApxsPermit2ForRouter
                     }
                   />
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
                 <div className="mb-5">
