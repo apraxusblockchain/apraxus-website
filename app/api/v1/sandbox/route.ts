@@ -42,17 +42,51 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (typeof agentId !== "string" || !agentId.trim()) {
+      return apiError(
+        "agentId must be a non-empty string",
+        400,
+        "INVALID_AGENT"
+      );
+    }
+
+    if (typeof token !== "string" || !token.trim()) {
+      return apiError(
+        "token must be a non-empty string",
+        400,
+        "INVALID_TOKEN"
+      );
+    }
+
+    if (
+      typeof amount !== "string" ||
+      !/^\\d+(\\.\\d+)?$/.test(amount) ||
+      Number(amount) <= 0
+    ) {
+      return apiError(
+        "amount must be a positive decimal string",
+        400,
+        "INVALID_AMOUNT"
+      );
+    }
+
+    const requestId = createRequestId("sandbox");
+
     return NextResponse.json({
       success: true,
       sandbox: true,
-      requestId: createRequestId("sandbox"),
+      requestId,
       action,
       status: "simulated",
       network: "arbitrum-sepolia",
-      agentId,
-      token,
+      agentId: agentId.trim(),
+      token: token.trim().toUpperCase(),
       amount,
-      execution: "simulation_only",
+      execution: {
+        mode: "simulation_only",
+        transactionSubmitted: false,
+        transactionHash: null,
+      },
     });
   } catch {
     return apiError(
