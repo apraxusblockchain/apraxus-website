@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useChainId } from "wagmi";
 import {
   Bot,
   CheckCircle2,
@@ -39,6 +40,13 @@ const DAILY_LIMIT = 100;
 const PER_TX_LIMIT = 10;
 
 export function AgentPaymentConsole() {
+  const chainId = useChainId();
+
+  const activeNetworkName =
+    chainId === bscTestnet.id
+      ? "BNB Testnet"
+      : "Arbitrum Sepolia";
+
   const [amount, setAmount] = useState("0.001");
   const [destination, setDestination] = useState("");
 
@@ -305,7 +313,7 @@ const hash = await walletClient.writeContract({
 
           <div className="hidden sm:flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs text-emerald-300">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            Arbitrum Sepolia
+            {activeNetworkName}
           </div>
         </div>
       </div>
@@ -535,7 +543,7 @@ const hash = await walletClient.writeContract({
                         </span>
 
                         <span>
-                          Arbitrum Sepolia
+                          {activeNetworkName}
                         </span>
                       </div>
 
