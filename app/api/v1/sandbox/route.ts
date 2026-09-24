@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     if (
       typeof amount !== "string" ||
-      !/^\\d+(\\.\\d+)?$/.test(amount) ||
+      !/^\d+(\.\d+)?$/.test(amount) ||
       Number(amount) <= 0
     ) {
       return apiError(
