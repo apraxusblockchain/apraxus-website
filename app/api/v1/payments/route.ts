@@ -29,16 +29,60 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (typeof token !== "string" || !token.trim()) {
+      return apiError(
+        "token must be a non-empty string",
+        400,
+        "INVALID_TOKEN"
+      );
+    }
+
+    if (
+      typeof amount !== "string" ||
+      !/^\d+(\.\d+)?$/.test(amount) ||
+      Number(amount) <= 0
+    ) {
+      return apiError(
+        "amount must be a positive decimal string",
+        400,
+        "INVALID_AMOUNT"
+      );
+    }
+
+    if (
+      typeof recipient !== "string" ||
+      !/^0x[a-fA-F0-9]{40}$/.test(recipient)
+    ) {
+      return apiError(
+        "recipient must be a valid EVM address",
+        400,
+        "INVALID_RECIPIENT"
+      );
+    }
+
+    if (typeof agentId !== "string" || !agentId.trim()) {
+      return apiError(
+        "agentId must be a non-empty string",
+        400,
+        "INVALID_AGENT"
+      );
+    }
+
     return NextResponse.json({
       requestId: createRequestId("pay"),
       success: true,
       type: "payment_intent",
       status: "pending",
       network: "arbitrum-sepolia",
-      token,
+      token: token.trim().toUpperCase(),
       amount,
-      recipient,
-      agentId,
+      recipient: recipient.trim(),
+      agentId: agentId.trim(),
+      execution: {
+        mode: "intent_only",
+        transactionSubmitted: false,
+        transactionHash: null,
+      },
     });
   } catch {
     return apiError(
