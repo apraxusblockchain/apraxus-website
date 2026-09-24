@@ -156,6 +156,7 @@ export default function APXSWallet() {
 
   const [apxsBalance, setApxsBalance] = useState<string>("—");
   const [wethBalance, setWethBalance] = useState<string>("—");
+  const [nativeBalance, setNativeBalance] = useState<string>("—");
 
   const [wethPermit2Approved, setWethPermit2Approved] =
     useState(false);
@@ -253,6 +254,16 @@ export default function APXSWallet() {
       setError(null);
 
       const publicClient = await getPublicClient();
+
+      const nativeRaw = await publicClient.getBalance({
+        address: walletAddress,
+      });
+
+      setNativeBalance(
+        `${formatUnits(nativeRaw, 18)} ${
+          chainId === bscTestnet.id ? "BNB" : "ETH"
+        }`
+      );
 
       if (chainId === bscTestnet.id) {
         const apxsRaw = await publicClient.readContract({
@@ -922,7 +933,9 @@ export default function APXSWallet() {
         </div>
 
         <h2 className="text-2xl font-semibold tracking-tight">
-          Arbitrum Sepolia APXS / WETH
+          {chainId === bscTestnet.id
+            ? "BNB Testnet APXS"
+            : "Arbitrum Sepolia APXS / WETH"}
         </h2>
 
         <p className="mt-2 text-sm text-white/45">
@@ -1070,15 +1083,26 @@ export default function APXSWallet() {
                   </div>
                 </div>
 
+                {chainId !== bscTestnet.id && (
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-5">
+                    <div className="text-xs uppercase tracking-[0.15em] text-white/35">
+                      WETH Balance
+                    </div>
+
+                    <div className="mt-3 text-lg font-medium text-white/90">
+                      {loading
+                        ? "Loading..."
+                        : wethBalance}
+                    </div>
+                  </div>
+                )}
                 <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-5">
                   <div className="text-xs uppercase tracking-[0.15em] text-white/35">
-                    WETH Balance
+                    Gas Balance
                   </div>
 
                   <div className="mt-3 text-lg font-medium text-white/90">
-                    {loading
-                      ? "Loading..."
-                      : wethBalance}
+                    {loading ? "Loading..." : nativeBalance}
                   </div>
                 </div>
               </div>
