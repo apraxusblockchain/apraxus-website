@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useChainId } from "wagmi";
+import { useChainId, useSwitchChain } from "wagmi";
 import {
   Bot,
   CheckCircle2,
@@ -41,6 +41,7 @@ const PER_TX_LIMIT = 10;
 
 export function AgentPaymentConsole() {
   const chainId = useChainId();
+  const { switchChainAsync } = useSwitchChain();
 
   const activeNetworkName =
     chainId === bscTestnet.id
@@ -121,7 +122,22 @@ export function AgentPaymentConsole() {
         destination.trim() as Address;
 
       /*
-       * Detect the MetaMask network first.
+       * Switch MetaMask to the network currently selected
+       * in the Apraxus network selector.
+       */
+      const targetChainId =
+        chainId === bscTestnet.id
+          ? bscTestnet.id
+          : arbitrumSepolia.id;
+
+      if (chainId !== targetChainId) {
+        await switchChainAsync({
+          chainId: targetChainId,
+        });
+      }
+
+      /*
+       * Detect the active MetaMask network after switching.
        */
       const detectedChainId = await new Promise<number>((resolve) => {
         window.ethereum.request({
