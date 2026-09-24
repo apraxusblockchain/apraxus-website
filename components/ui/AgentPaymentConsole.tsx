@@ -574,12 +574,16 @@ const hash = await walletClient.writeContract({
                       </div>
 
                       <a
-                        href={`https://sepolia.arbiscan.io/tx/${transactionHash}`}
+                        href={
+                          chainId === bscTestnet.id
+                            ? `https://testnet.bscscan.com/tx/${transactionHash}`
+                            : `https://sepolia.arbiscan.io/tx/${transactionHash}`
+                        }
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex text-[#A78BFA] hover:underline"
                       >
-                        View on Arbiscan →
+                        View on {chainId === bscTestnet.id ? "BscScan" : "Arbiscan"} →
                       </a>
                     </div>
                   </div>
