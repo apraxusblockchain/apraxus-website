@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from './Logo';
+import { arbitrumSepolia, bscTestnet } from 'viem/chains';
+import { useChainId, useSwitchChain } from 'wagmi';
 import {
   Menu,
   X,
@@ -114,7 +116,18 @@ const NAV_GROUPS = [
 export const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] = useState<'arbitrumSepolia' | 'bnbTestnet'>('arbitrumSepolia');
+  const { switchChain } = useSwitchChain();
+  const chainId = useChainId();
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (chainId === arbitrumSepolia.id) {
+      setSelectedNetwork('arbitrumSepolia');
+    } else if (chainId === bscTestnet.id) {
+      setSelectedNetwork('bnbTestnet');
+    }
+  }, [chainId]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -155,6 +168,40 @@ export const Navbar = () => {
           <Logo size="md" withWordmark={true} />
 
           <div className="flex items-center gap-2.5">
+            <div className="relative hidden sm:block">
+              <button
+                type="button"
+                onClick={async () => {
+                  const nextNetwork =
+                    selectedNetwork === 'arbitrumSepolia'
+                      ? 'bnbTestnet'
+                      : 'arbitrumSepolia';
+
+                  try {
+                    await switchChain({
+                      chainId:
+                        nextNetwork === 'arbitrumSepolia'
+                          ? arbitrumSepolia.id
+                          : bscTestnet.id,
+                    });
+                    setSelectedNetwork(nextNetwork);
+                  } catch {
+                    // Keep the current selection if the wallet rejects the switch.
+                  }
+                }}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/[0.03] border border-white/[0.08] text-xs font-mono text-zinc-300 hover:bg-white/[0.06] hover:border-white/[0.14] transition-all"
+                aria-label="Switch testnet"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span>
+                  {selectedNetwork === 'arbitrumSepolia'
+                    ? 'Arbitrum Sepolia'
+                    : 'BNB Testnet'}
+                </span>
+                <span className="text-zinc-500">⌄</span>
+              </button>
+            </div>
+
             <Link
               href="/network"
               className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#7B5CFA]/10 border border-[#7B5CFA]/30 text-xs font-mono text-[#C7BCFF] hover:bg-[#7B5CFA]/20 hover:border-[#7B5CFA]/50 transition-all"
