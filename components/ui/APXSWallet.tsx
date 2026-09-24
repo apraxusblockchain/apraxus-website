@@ -13,11 +13,12 @@ import {
   useSwitchChain,
   useWalletClient,
 } from "wagmi";
-import { arbitrumSepolia } from "wagmi/chains";
+import { arbitrumSepolia, bscTestnet } from "wagmi/chains";
 
 import {
   APXS_ABI,
   APXS_CONTRACT_ADDRESS,
+  APXS_CHAINS,
 } from "@/lib/web3/apxs";
 import {
   quoteWethToApxs,
@@ -191,7 +192,19 @@ export default function APXSWallet() {
 
   const [showWallets, setShowWallets] = useState(true);
 
-  const supportedChain = chainId === arbitrumSepolia.id;
+  const supportedChain =
+    chainId === arbitrumSepolia.id ||
+    chainId === bscTestnet.id;
+
+  const activeApxsAddress =
+    chainId === APXS_CHAINS.bnbTestnet.chain.id
+      ? APXS_CHAINS.bnbTestnet.address
+      : APXS_CONTRACT_ADDRESS;
+
+  const activeNetworkName =
+    chainId === bscTestnet.id
+      ? "BNB Testnet"
+      : "Arbitrum Sepolia";
 
   const detectedConnectors = useMemo(() => {
     const seen = new Set<string>();
@@ -210,6 +223,15 @@ export default function APXSWallet() {
 
   const getPublicClient = async () => {
     const { createPublicClient, http } = await import("viem");
+
+    if (chainId === bscTestnet.id) {
+      return createPublicClient({
+        chain: bscTestnet,
+        transport: http(
+          "https://data-seed-prebsc-1-s1.bnbchain.org:8545"
+        ),
+      });
+    }
 
     return createPublicClient({
       chain: arbitrumSepolia,
@@ -232,6 +254,25 @@ export default function APXSWallet() {
 
       const publicClient = await getPublicClient();
 
+      if (chainId === bscTestnet.id) {
+        const apxsRaw = await publicClient.readContract({
+          address: activeApxsAddress,
+          abi: APXS_ABI,
+          functionName: "balanceOf",
+          args: [walletAddress],
+        });
+
+        setApxsBalance(`${formatUnits(apxsRaw, 8)} APXS`);
+        setWethBalance("—");
+        setWethPermit2Approved(false);
+        setApxsPermit2Approved(false);
+        setWethRouterApproved(false);
+        setApxsRouterApproved(false);
+        setPermit2Expiration(0);
+
+        return;
+      }
+
       const [
         apxsRaw,
         wethRaw,
@@ -243,7 +284,7 @@ export default function APXSWallet() {
         permit2Apxs,
       ] = await Promise.all([
         publicClient.readContract({
-          address: APXS_CONTRACT_ADDRESS,
+          address: activeApxsAddress,
           abi: APXS_ABI,
           functionName: "balanceOf",
           args: [walletAddress],
@@ -382,7 +423,7 @@ export default function APXSWallet() {
     }
 
     void loadBalances(address);
-  }, [isConnected, address, supportedChain]);
+  }, [isConnected, address, chainId, supportedChain]);
 
   const handleConnect = async (
     connectorToUse?: (typeof connectors)[number]
@@ -1012,7 +1053,7 @@ export default function APXSWallet() {
                 </div>
 
                 <div className="mt-2 text-sm font-medium text-emerald-300">
-                  ✓ Arbitrum Sepolia
+                  ✓ {activeNetworkName}
                 </div>
               </div>
 
