@@ -237,7 +237,10 @@ if (block.baseFeePerGas == null) {
   throw new Error('Unable to read current network base fee.');
 }
 
-const maxPriorityFeePerGas = BigInt(1000000);
+const maxPriorityFeePerGas =
+  activeChain.id === bscTestnet.id
+    ? BigInt(100000000)
+    : BigInt(1000000);
 const maxFeePerGas =
   block.baseFeePerGas * BigInt(2) + maxPriorityFeePerGas;
 const hash = await walletClient.writeContract({
