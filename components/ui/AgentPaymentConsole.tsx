@@ -249,7 +249,7 @@ const hash = await walletClient.writeContract({
     destination.trim() as Address,
         transferAmount,
   ],
-  chain: arbitrumSepolia,
+  chain: activeChain,
   maxFeePerGas,
   maxPriorityFeePerGas,
 });
