@@ -1,8 +1,15 @@
 import { ApraxusClient } from "./apraxus";
 
-export function createApraxusClient(apiKey?: string) {
+export type CreateApraxusClientOptions = {
+  apiKey?: string;
+  baseUrl?: string;
+};
+
+export function createApraxusClient(
+  options: CreateApraxusClientOptions = {}
+) {
   return new ApraxusClient({
-    baseUrl: "/api/v1",
-    apiKey,
+    baseUrl: options.baseUrl ?? "/api/v1",
+    apiKey: options.apiKey,
   });
 }

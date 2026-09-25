@@ -8,7 +8,13 @@ export type {
   SandboxResponse,
 } from "./apraxus";
 
-export { createApraxusClient } from "./client";
+export {
+  createApraxusClient,
+} from "./client";
+
+export type {
+  CreateApraxusClientOptions,
+} from "./client";
 
 export {
   APRAXUS_API_VERSION,
