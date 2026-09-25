@@ -3,6 +3,8 @@ import { validateApiKey } from "@/lib/api/auth";
 import { createRequestId } from "@/lib/api/request-id";
 import { apiError } from "@/lib/api/errors";
 import { recordApiRequest } from "@/lib/api/metrics";
+import { createExecutionRecord } from "@/lib/execution/repository";
+import { APXS_CHAINS } from "@/lib/web3/chains/apxs";
 
 export async function POST(request: NextRequest) {
   const auth = validateApiKey(request);
@@ -79,8 +81,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const requestId = createRequestId("exec");
+
+    createExecutionRecord({
+      requestId,
+      agentId: agentId.trim(),
+      walletAddress: wallet.trim(),
+      chainId: 421614,
+      tokenAddress: APXS_CHAINS.arbitrumSepolia.address,
+      amount,
+      recipient: recipient.trim(),
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    });
+
     return NextResponse.json({
-      requestId: createRequestId("exec"),
+      requestId,
       success: true,
       type: "execution_intent",
       status: "pending",
