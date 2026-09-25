@@ -1,5 +1,12 @@
 export { ApraxusClient } from "./apraxus";
-export type { ApraxusClientOptions } from "./apraxus";
+export type {
+  ApraxusClientOptions,
+  HealthResponse,
+  PaymentResponse,
+  QuoteResponse,
+  ExecutionResponse,
+  SandboxResponse,
+} from "./apraxus";
 
 export { createApraxusClient } from "./client";
 

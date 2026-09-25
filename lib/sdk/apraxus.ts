@@ -3,6 +3,81 @@ export type ApraxusClientOptions = {
   apiKey?: string;
 };
 
+export type HealthResponse = {
+  service: string;
+  version: string;
+  status: string;
+  network: string;
+};
+
+export type PaymentResponse = {
+  requestId: string;
+  success: boolean;
+  type: "payment_intent";
+  status: "pending";
+  network: string;
+  token: string;
+  amount: string;
+  recipient: string;
+  agentId: string;
+  execution: {
+    mode: "intent_only";
+    transactionSubmitted: false;
+    transactionHash: null;
+  };
+};
+
+export type QuoteResponse = {
+  requestId: string;
+  success: boolean;
+  type: "quote";
+  status: "available";
+  network: string;
+  tokenIn: string;
+  tokenOut: string;
+  amountIn: string;
+  execution: {
+    mode: "quote_only";
+    transactionSubmitted: false;
+    transactionHash: null;
+  };
+};
+
+export type ExecutionResponse = {
+  requestId: string;
+  success: boolean;
+  type: "execution_intent";
+  status: "pending";
+  network: string;
+  agentId: string;
+  wallet: string;
+  token: string;
+  amount: string;
+  recipient: string;
+  execution: {
+    mode: "intent_only";
+    transactionSubmitted: false;
+    transactionHash: null;
+  };
+};
+
+export type SandboxResponse = {
+  success: true;
+  sandbox: true;
+  requestId: string;
+  action: "payment" | "quote" | "execution";
+  status: "simulated";
+  network: string;
+  agentId: string;
+  token: string;
+  amount: string;
+  execution: {
+    mode: "simulation_only";
+    transactionSubmitted: false;
+    transactionHash: null;
+  };
+};
+
 export class ApraxusClient {
   private baseUrl: string;
   private apiKey?: string;
@@ -36,8 +111,8 @@ export class ApraxusClient {
     return data;
   }
 
-  async health() {
-    return this.request("/health");
+  async health(): Promise<HealthResponse> {
+    return this.request<HealthResponse>("/health");
   }
 
   async createPayment(payment: {
@@ -45,8 +120,8 @@ export class ApraxusClient {
     amount: string;
     recipient: string;
     agentId: string;
-  }) {
-    return this.request("/payments", {
+  }): Promise<PaymentResponse> {
+    return this.request<PaymentResponse>("/payments", {
       method: "POST",
       body: JSON.stringify(payment),
     });
@@ -56,8 +131,8 @@ export class ApraxusClient {
     tokenIn: string;
     tokenOut: string;
     amountIn: string;
-  }) {
-    return this.request("/quotes", {
+  }): Promise<QuoteResponse> {
+    return this.request<QuoteResponse>("/quotes", {
       method: "POST",
       body: JSON.stringify(quote),
     });
@@ -69,10 +144,22 @@ export class ApraxusClient {
     token: string;
     amount: string;
     recipient: string;
-  }) {
-    return this.request("/executions", {
+  }): Promise<ExecutionResponse> {
+    return this.request<ExecutionResponse>("/executions", {
       method: "POST",
       body: JSON.stringify(execution),
+    });
+  }
+
+  async sandbox(request: {
+    action?: "payment" | "quote" | "execution";
+    agentId?: string;
+    token?: string;
+    amount?: string;
+  }): Promise<SandboxResponse> {
+    return this.request<SandboxResponse>("/sandbox", {
+      method: "POST",
+      body: JSON.stringify(request),
     });
   }
 }
