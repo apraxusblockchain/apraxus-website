@@ -23,6 +23,10 @@ export type ExecuteApxsPaymentResult = {
 export async function executeApxsPayment(
   input: ExecuteApxsPaymentInput
 ): Promise<ExecuteApxsPaymentResult> {
+  if (input.walletClient.chain?.id !== input.chainId) {
+    throw new Error("Wallet network does not match the requested payment network.");
+  }
+
   const transactionHash = await input.walletClient.writeContract({
     account: input.account,
     address: input.tokenAddress,
