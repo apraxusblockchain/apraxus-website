@@ -18,6 +18,8 @@ export type ExecuteApxsPaymentInput = {
 
 export type ExecuteApxsPaymentResult = {
   transactionHash: `0x${string}`;
+  status: "success" | "reverted";
+  blockNumber: bigint;
 };
 
 export async function executeApxsPayment(
@@ -49,11 +51,13 @@ export async function executeApxsPayment(
     maxPriorityFeePerGas: input.maxPriorityFeePerGas,
   });
 
-  await input.publicClient.waitForTransactionReceipt({
+  const receipt = await input.publicClient.waitForTransactionReceipt({
     hash: transactionHash,
   });
 
   return {
     transactionHash,
+    status: receipt.status === "success" ? "success" : "reverted",
+    blockNumber: receipt.blockNumber,
   };
 }

@@ -61,6 +61,10 @@ export function AgentPaymentConsole() {
   const [walletAddress, setWalletAddress] = useState<Address | null>(null);
 
   const [transactionHash, setTransactionHash] = useState<string>("");
+  const [receiptStatus, setReceiptStatus] = useState<
+    "success" | "reverted" | null
+  >(null);
+  const [receiptBlockNumber, setReceiptBlockNumber] = useState<string>("");
   const [tokenBalance, setTokenBalance] = useState<string>("—");
   const [decimals, setDecimals] = useState<number | null>(null);
 
@@ -88,6 +92,8 @@ export function AgentPaymentConsole() {
       setExecuting(true);
       setExecuted(false);
       setTransactionHash("");
+      setReceiptStatus(null);
+      setReceiptBlockNumber("");
 
       if (!policy.allowed) {
         setError("Payment is blocked by policy.");
@@ -248,8 +254,11 @@ const maxPriorityFeePerGas =
     : BigInt(1000000);
 const maxFeePerGas =
   block.baseFeePerGas * BigInt(2) + maxPriorityFeePerGas;
-const { transactionHash: hash } =
-        await executeApxsPayment({
+const {
+        transactionHash: hash,
+        status,
+        blockNumber,
+      } = await executeApxsPayment({
           walletClient,
           publicClient: activePublicClient,
           account,
@@ -262,6 +271,8 @@ const { transactionHash: hash } =
         });
 
       setTransactionHash(hash);
+      setReceiptStatus(status);
+      setReceiptBlockNumber(blockNumber.toString());
 
       setExecuted(true);
     } catch (err) {
@@ -521,8 +532,26 @@ const { transactionHash: hash } =
                           Status
                         </span>
 
-                        <span className="text-emerald-300">
-                          Confirmed
+                        <span
+                          className={
+                            receiptStatus === "success"
+                              ? "text-emerald-300"
+                              : "text-red-300"
+                          }
+                        >
+                          {receiptStatus === "success"
+                            ? "Confirmed"
+                            : "Reverted"}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between gap-4">
+                        <span className="text-zinc-500">
+                          Block
+                        </span>
+
+                        <span className="font-mono">
+                          {receiptBlockNumber || "—"}
                         </span>
                       </div>
 
