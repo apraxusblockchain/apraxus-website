@@ -4,6 +4,8 @@ import type {
   WalletClient,
 } from "viem";
 
+import type { PaymentReceipt } from "@/lib/payment/receipt";
+
 export type ExecuteApxsPaymentInput = {
   walletClient: WalletClient;
   publicClient: PublicClient;
@@ -16,11 +18,7 @@ export type ExecuteApxsPaymentInput = {
   maxPriorityFeePerGas: bigint;
 };
 
-export type ExecuteApxsPaymentResult = {
-  transactionHash: `0x${string}`;
-  status: "success" | "reverted";
-  blockNumber: bigint;
-};
+export type ExecuteApxsPaymentResult = PaymentReceipt;
 
 export async function executeApxsPayment(
   input: ExecuteApxsPaymentInput
