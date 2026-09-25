@@ -29,16 +29,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (typeof tokenIn !== "string" || !tokenIn.trim()) {
+      return apiError(
+        "tokenIn must be a non-empty string",
+        400,
+        "INVALID_TOKEN_IN"
+      );
+    }
+
+    if (typeof tokenOut !== "string" || !tokenOut.trim()) {
+      return apiError(
+        "tokenOut must be a non-empty string",
+        400,
+        "INVALID_TOKEN_OUT"
+      );
+    }
+
+    if (
+      typeof amountIn !== "string" ||
+      !/^\d+(\.\d+)?$/.test(amountIn) ||
+      Number(amountIn) <= 0
+    ) {
+      return apiError(
+        "amountIn must be a positive decimal string",
+        400,
+        "INVALID_AMOUNT"
+      );
+    }
+
     return NextResponse.json({
       requestId: createRequestId("quote"),
       success: true,
       type: "quote",
       status: "available",
       network: "arbitrum-sepolia",
-      tokenIn,
-      tokenOut,
+      tokenIn: tokenIn.trim().toUpperCase(),
+      tokenOut: tokenOut.trim().toUpperCase(),
       amountIn,
-      execution: "testnet",
+      execution: {
+        mode: "quote_only",
+        transactionSubmitted: false,
+        transactionHash: null,
+      },
     });
   } catch {
     return apiError(
