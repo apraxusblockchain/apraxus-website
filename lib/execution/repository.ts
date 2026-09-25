@@ -11,6 +11,25 @@ export function createExecutionRecord(
   return record;
 }
 
+function canTransition(
+  current: ExecutionStatus,
+  next: ExecutionStatus
+): boolean {
+  if (current === next) {
+    return true;
+  }
+
+  const transitions: Record<ExecutionStatus, ExecutionStatus[]> = {
+    pending: ["submitted", "failed"],
+    submitted: ["confirmed", "reverted", "failed"],
+    confirmed: [],
+    reverted: [],
+    failed: [],
+  };
+
+  return transitions[current].includes(next);
+}
+
 export function updateExecutionRecord(
   requestId: string,
   updates: Partial<ExecutionRecord> & { status?: ExecutionStatus }
@@ -18,6 +37,13 @@ export function updateExecutionRecord(
   const existing = records.get(requestId);
 
   if (!existing) {
+    return null;
+  }
+
+  if (
+    updates.status &&
+    !canTransition(existing.status, updates.status)
+  ) {
     return null;
   }
 

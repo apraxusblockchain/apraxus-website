@@ -60,6 +60,7 @@ export function AgentPaymentConsole() {
   const [executing, setExecuting] = useState(false);
   const [walletAddress, setWalletAddress] = useState<Address | null>(null);
 
+  const [requestId, setRequestId] = useState<string>("");
   const [transactionHash, setTransactionHash] = useState<string>("");
   const [receiptStatus, setReceiptStatus] = useState<
     "success" | "reverted" | null
@@ -83,6 +84,7 @@ export function AgentPaymentConsole() {
     setError("");
     setChecked(true);
     setExecuted(false);
+    setRequestId("");
     setTransactionHash("");
     setReceiptStatus(null);
     setReceiptBlockNumber("");
@@ -111,19 +113,17 @@ export function AgentPaymentConsole() {
         destination.trim() as Address;
 
       /*
-       * Switch MetaMask to the network currently selected
-       * in the Apraxus network selector.
+       * Use the network selected in the Apraxus selector as the
+       * requested target, then explicitly switch MetaMask to it.
        */
       const targetChainId =
         chainId === bscTestnet.id
           ? bscTestnet.id
           : arbitrumSepolia.id;
 
-      if (chainId !== targetChainId) {
-        await switchChainAsync({
-          chainId: targetChainId,
-        });
-      }
+      await switchChainAsync({
+        chainId: targetChainId,
+      });
 
       /*
        * Detect the active MetaMask network after switching.
@@ -235,6 +235,38 @@ export function AgentPaymentConsole() {
         return;
       }
 
+
+      /*
+       * Create a server-side execution intent.
+       * The API key remains server-side.
+       */
+      const intentResponse = await fetch("/api/developers/executions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          agentId: "Agent-001",
+          wallet: account,
+          token: "APXS",
+          amount,
+          recipient: destination.trim(),
+          chainId: activeChain.id,
+        }),
+      });
+
+      const intentData = await intentResponse.json();
+
+      if (!intentResponse.ok || !intentData?.requestId) {
+        throw new Error(
+          intentData?.error?.message ??
+            intentData?.error ??
+            "Unable to create execution intent."
+        );
+      }
+
+      setRequestId(intentData.requestId);
+
       /*
        * REAL ERC-20 TRANSFER
        *
@@ -275,6 +307,36 @@ const {
       setTransactionHash(hash);
       setReceiptStatus(status);
       setReceiptBlockNumber(blockNumber.toString());
+
+      /*
+       * Synchronize the verified on-chain result with
+       * the execution record created for this request.
+       */
+      if (requestId) {
+        const syncResponse = await fetch(
+          "/api/developers/executions/sync",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              requestId,
+              transactionHash: hash,
+            }),
+          }
+        );
+
+        const syncData = await syncResponse.json();
+
+        if (!syncResponse.ok) {
+          throw new Error(
+            syncData?.error?.message ??
+              syncData?.error ??
+              "Unable to synchronize execution record."
+          );
+        }
+      }
 
       setExecuted(true);
     } catch (err) {

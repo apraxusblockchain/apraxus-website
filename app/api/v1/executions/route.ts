@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     recordApiRequest("/api/v1/executions");
     const body = await request.json();
 
-    const { agentId, wallet, token, amount, recipient } = body;
+    const { agentId, wallet, token, amount, recipient, chainId } = body;
 
     if (!agentId || !wallet || !token || !amount || !recipient) {
       return apiError(
@@ -81,14 +81,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const requestedChainId =
+      chainId === undefined ? 421614 : Number(chainId);
+
+    const chainConfig =
+      requestedChainId === 421614
+        ? APXS_CHAINS.arbitrumSepolia
+        : requestedChainId === 97
+          ? APXS_CHAINS.bnbTestnet
+          : null;
+
+    if (!chainConfig) {
+      return apiError(
+        "chainId must be 421614 (Arbitrum Sepolia) or 97 (BNB Testnet)",
+        400,
+        "INVALID_CHAIN"
+      );
+    }
+
+    const network =
+      requestedChainId === 97
+        ? "bnb-testnet"
+        : "arbitrum-sepolia";
+
     const requestId = createRequestId("exec");
 
     createExecutionRecord({
       requestId,
       agentId: agentId.trim(),
       walletAddress: wallet.trim(),
-      chainId: 421614,
-      tokenAddress: APXS_CHAINS.arbitrumSepolia.address,
+      chainId: requestedChainId,
+      tokenAddress: chainConfig.address,
       amount,
       recipient: recipient.trim(),
       status: "pending",
@@ -100,7 +123,7 @@ export async function POST(request: NextRequest) {
       success: true,
       type: "execution_intent",
       status: "pending",
-      network: "arbitrum-sepolia",
+      network,
       agentId: agentId.trim(),
       wallet: wallet.trim(),
       token: token.trim().toUpperCase(),

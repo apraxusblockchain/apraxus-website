@@ -1,3 +1,5 @@
+import { ExecutionHistory } from "@/components/ui/ExecutionHistory";
+
 export default function DeveloperDashboardPage() {
   const tools = [
     {
@@ -87,6 +89,8 @@ export default function DeveloperDashboardPage() {
             ))}
           </div>
         </div>
+
+        <ExecutionHistory />
 
         <div className="mt-12 rounded-2xl border border-white/10 p-6">
           <p className="text-sm uppercase tracking-[0.2em] text-white/40">
