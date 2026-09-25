@@ -84,6 +84,8 @@ export function AgentPaymentConsole() {
     setChecked(true);
     setExecuted(false);
     setTransactionHash("");
+    setReceiptStatus(null);
+    setReceiptBlockNumber("");
   }
 
   async function executePayment() {
