@@ -32,6 +32,9 @@ import {
 import {
   evaluatePaymentPolicy,
 } from "@/lib/policy/engine";
+import {
+  executeApxsPayment,
+} from "@/lib/payment/engine";
 
 declare global {
   interface Window {
@@ -245,28 +248,20 @@ const maxPriorityFeePerGas =
     : BigInt(1000000);
 const maxFeePerGas =
   block.baseFeePerGas * BigInt(2) + maxPriorityFeePerGas;
-const hash = await walletClient.writeContract({
-  account,
-  address: activeApxsAddress,
-  abi: APXS_ABI,
-  functionName: 'transfer',
-  args: [
-    destination.trim() as Address,
-        transferAmount,
-  ],
-  chain: activeChain,
-  maxFeePerGas,
-  maxPriorityFeePerGas,
-});
+const { transactionHash: hash } =
+        await executeApxsPayment({
+          walletClient,
+          publicClient: activePublicClient,
+          account,
+          tokenAddress: activeApxsAddress,
+          destination: destination.trim() as Address,
+          amount: transferAmount,
+          chainId: activeChain.id,
+          maxFeePerGas,
+          maxPriorityFeePerGas,
+        });
 
       setTransactionHash(hash);
-
-      /*
-       * Wait until the transaction is mined.
-       */
-      await activePublicClient.waitForTransactionReceipt({
-        hash,
-      });
 
       setExecuted(true);
     } catch (err) {
