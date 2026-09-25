@@ -29,15 +29,15 @@ import {
   apxsPublicClient,
   bnbApxsPublicClient,
 } from "@/lib/web3/apxs";
+import {
+  evaluatePaymentPolicy,
+} from "@/lib/policy/engine";
 
 declare global {
   interface Window {
     ethereum?: any;
   }
 }
-
-const DAILY_LIMIT = 100;
-const PER_TX_LIMIT = 10;
 
 export function AgentPaymentConsole() {
   const chainId = useChainId();
@@ -63,36 +63,14 @@ export function AgentPaymentConsole() {
 
   const [error, setError] = useState("");
 
-  const numericAmount = Number(amount);
-
-  const policy = useMemo(() => {
-    const validAmount =
-      Number.isFinite(numericAmount) &&
-      numericAmount > 0;
-
-    const withinTxLimit =
-      validAmount &&
-      numericAmount <= PER_TX_LIMIT;
-
-    const withinDailyLimit =
-      validAmount &&
-      numericAmount <= DAILY_LIMIT;
-
-    const approvedDestination =
-      isAddress(destination.trim());
-
-    return {
-      validAmount,
-      withinTxLimit,
-      withinDailyLimit,
-      approvedDestination,
-      allowed:
-        validAmount &&
-        withinTxLimit &&
-        withinDailyLimit &&
-        approvedDestination,
-    };
-  }, [numericAmount, destination]);
+  const policy = useMemo(
+    () =>
+      evaluatePaymentPolicy({
+        amount,
+        destination,
+      }),
+    [amount, destination]
+  );
 
   function checkPolicy() {
     setError("");
@@ -539,7 +517,7 @@ const hash = await walletClient.writeContract({
                         </span>
 
                         <span className="font-mono">
-                          {numericAmount} APXS
+                          {amount} APXS
                         </span>
                       </div>
 
