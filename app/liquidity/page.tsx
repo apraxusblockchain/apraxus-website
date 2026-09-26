@@ -22,6 +22,7 @@ import {
 } from '@/lib/web3/apxs-liquidity';
 
 import { connectMetaMask } from '@/lib/web3/metamask';
+import { APRAXUS_NETWORKS } from '@/lib/web3/network-registry';
 import { buildIncreaseLiquidityCall } from '@/lib/web3/apxs-v4-position';
 
 const client = apxsLiquidityClient;
@@ -94,7 +95,7 @@ const permit2Abi = [
 ] as const;
 
 const PERMIT2 =
-  '0x000000000022D473030F116dDEE9F6B43aC78BA3' as Address;
+  APRAXUS_NETWORKS.arbitrumSepolia.liquidity!.permit2;
 
 const permit2BatchTypes = {
   PermitBatch: [
