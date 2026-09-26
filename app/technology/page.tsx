@@ -5,7 +5,7 @@ import { Terminal, Shield, Cpu, Network, CheckCircle2, GitBranch, Database, File
 
 export const metadata = {
   title: 'Technology & Architecture | Apraxus',
-  description: 'Technical architecture, Rust blockchain prototype evidence, and protocol design specifications of Apraxus.',
+  description: 'Technical architecture, verified implementation surfaces, and future protocol design of Apraxus.',
 };
 
 export default function TechnologyPage() {
@@ -21,42 +21,47 @@ export default function TechnologyPage() {
             Technology & System Architecture
           </h1>
           <p className="text-base text-zinc-400 leading-relaxed font-sans">
-            Apraxus is engineered from the ground up in native Rust. We provide total visibility into verified active implementations versus future roadmap architecture.
+            Apraxus combines a developer API, policy engine, payment execution layer, EVM infrastructure, and SDK to provide programmable infrastructure for autonomous software. Current implementation and future architecture are clearly separated below.
           </p>
         </div>
 
-        {/* Current Prototype Verification */}
+        {/* Current Implementation */}
         <div className="glass-card p-8 rounded-3xl border border-white/[0.08] flex flex-col gap-6 shadow-2xl">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-white/[0.08]">
             <div>
               <h2 className="text-lg font-bold text-white font-mono flex items-center gap-2">
-                <FileCode2 className="w-5 h-5 text-[#7B5CFA]" /> Current Rust Core Prototype Status
+                <FileCode2 className="w-5 h-5 text-[#7B5CFA]" /> Current Implementation Surface
               </h2>
-              <span className="text-xs text-zinc-400">Verified in single-node testbed harness</span>
+              <span className="text-xs text-zinc-400">
+                Repository-backed capabilities currently implemented for development and testnet use
+              </span>
             </div>
             <StatusPill status="SHIPPED" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-[#070709]/80 p-4.5 rounded-xl border border-white/5 flex flex-col gap-2">
-              <span className="text-xs text-zinc-500 font-mono">Language Core</span>
-              <span className="text-sm font-bold text-white font-mono">Rust 1.80+ / Tokio</span>
-              <span className="text-[11px] text-emerald-400">Zero-cost memory safety</span>
+              <span className="text-xs text-zinc-500 font-mono">Developer Interface</span>
+              <span className="text-sm font-bold text-white font-mono">API v1 + TypeScript SDK</span>
+              <span className="text-[11px] text-emerald-400">Intent and sandbox workflows</span>
             </div>
+
             <div className="bg-[#070709]/80 p-4.5 rounded-xl border border-white/5 flex flex-col gap-2">
-              <span className="text-xs text-zinc-500 font-mono">Cryptographic Primitives</span>
-              <span className="text-sm font-bold text-white font-mono">Ed25519 + SHA3-256</span>
-              <span className="text-[11px] text-emerald-400">Deterministic key signatures</span>
+              <span className="text-xs text-zinc-500 font-mono">Policy Layer</span>
+              <span className="text-sm font-bold text-white font-mono">Payment Policy Engine</span>
+              <span className="text-[11px] text-emerald-400">Transaction + daily limits</span>
             </div>
+
             <div className="bg-[#070709]/80 p-4.5 rounded-xl border border-white/5 flex flex-col gap-2">
-              <span className="text-xs text-zinc-500 font-mono">State Engine</span>
-              <span className="text-sm font-bold text-white font-mono">Merkle KV Store</span>
-              <span className="text-[11px] text-[#38E8F8]">Sub-second receipt generation</span>
+              <span className="text-xs text-zinc-500 font-mono">Execution Layer</span>
+              <span className="text-sm font-bold text-white font-mono">Wallet-Signed APXS</span>
+              <span className="text-[11px] text-[#38E8F8]">Receipt-confirmed testnet execution</span>
             </div>
+
             <div className="bg-[#070709]/80 p-4.5 rounded-xl border border-white/5 flex flex-col gap-2">
-              <span className="text-xs text-zinc-500 font-mono">Network Transport</span>
-              <span className="text-sm font-bold text-white font-mono">TCP Asynchronous</span>
-              <span className="text-[11px] text-purple-300">Async stream handshake</span>
+              <span className="text-xs text-zinc-500 font-mono">EVM Infrastructure</span>
+              <span className="text-sm font-bold text-white font-mono">EVM + Uniswap v4</span>
+              <span className="text-[11px] text-purple-300">APXS / WETH testnet infrastructure</span>
             </div>
           </div>
         </div>
