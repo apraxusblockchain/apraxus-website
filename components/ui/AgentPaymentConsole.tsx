@@ -33,6 +33,10 @@ import {
   evaluatePaymentPolicy,
 } from "@/lib/policy/engine";
 import {
+  getPolicyAccounting,
+  recordPolicySpend,
+} from "@/lib/policy/accounting";
+import {
   executeApxsPayment,
 } from "@/lib/payment/engine";
 
@@ -71,13 +75,18 @@ export function AgentPaymentConsole() {
 
   const [error, setError] = useState("");
 
+  const accounting = getPolicyAccounting("Agent-001");
+  const spentToday = accounting.spent;
+  const remainingDailyLimit = Math.max(100 - spentToday, 0);
+
   const policy = useMemo(
     () =>
       evaluatePaymentPolicy({
         amount,
         destination,
+        spent: spentToday,
       }),
-    [amount, destination]
+    [amount, destination, spentToday]
   );
 
   function checkPolicy() {
@@ -336,6 +345,10 @@ const {
               "Unable to synchronize execution record."
           );
         }
+
+        if (syncData?.record?.status === "confirmed") {
+          recordPolicySpend("Agent-001", Number(amount));
+        }
       }
 
       setExecuted(true);
@@ -415,7 +428,7 @@ const {
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="rounded-2xl border border-white/[0.07] bg-black/20 p-4">
                 <Clock3 className="w-4 h-4 text-[#38E8F8] mb-3" />
 
@@ -425,6 +438,30 @@ const {
 
                 <div className="mt-1 font-mono text-lg">
                   100 APXS
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/[0.07] bg-black/20 p-4">
+                <Clock3 className="w-4 h-4 text-amber-400 mb-3" />
+
+                <div className="text-[11px] uppercase tracking-wider text-zinc-500">
+                  Spent today
+                </div>
+
+                <div className="mt-1 font-mono text-lg">
+                  {spentToday} APXS
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/[0.07] bg-black/20 p-4">
+                <ShieldCheck className="w-4 h-4 text-emerald-400 mb-3" />
+
+                <div className="text-[11px] uppercase tracking-wider text-zinc-500">
+                  Remaining
+                </div>
+
+                <div className="mt-1 font-mono text-lg">
+                  {remainingDailyLimit} APXS
                 </div>
               </div>
 

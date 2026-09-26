@@ -6,6 +6,7 @@ export const PER_TX_LIMIT = 10;
 export type PaymentPolicyInput = {
   amount: string;
   destination: string;
+  spent?: number;
 };
 
 export type PaymentPolicyResult = {
@@ -29,9 +30,18 @@ export function evaluatePaymentPolicy(
     validAmount &&
     numericAmount <= PER_TX_LIMIT;
 
+  const currentSpent = Number.isFinite(input.spent ?? 0)
+    ? Math.max(input.spent ?? 0, 0)
+    : 0;
+
+  const remainingDailyLimit = Math.max(
+    DAILY_LIMIT - currentSpent,
+    0
+  );
+
   const withinDailyLimit =
     validAmount &&
-    numericAmount <= DAILY_LIMIT;
+    numericAmount <= remainingDailyLimit;
 
   const approvedDestination =
     isAddress(input.destination.trim());
