@@ -99,6 +99,22 @@ export function AgentPaymentConsole() {
     setReceiptBlockNumber("");
   }
 
+  async function markExecutionFailed() {
+    if (!requestId) return;
+
+    try {
+      await fetch("/api/developers/executions/fail", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ requestId }),
+      });
+    } catch (failureError) {
+      console.error("Unable to mark execution as failed:", failureError);
+    }
+  }
+
   async function executePayment() {
     try {
       setError("");
@@ -354,6 +370,8 @@ const {
       setExecuted(true);
     } catch (err) {
       console.error(err);
+
+      await markExecutionFailed();
 
       if (err instanceof Error) {
         setError(err.message);
