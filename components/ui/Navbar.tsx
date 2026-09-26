@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from './Logo';
 import { arbitrumSepolia, bscTestnet } from 'viem/chains';
+import { APRAXUS_NETWORKS, type ApraxusNetworkKey } from '@/lib/web3/network-registry';
 import { useChainId, useSwitchChain } from 'wagmi';
 import {
   ArrowUpRight,
@@ -60,9 +61,10 @@ const NAV_GROUPS = [
 
 export const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [networkOpen, setNetworkOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [selectedNetwork, setSelectedNetwork] =
-    useState<'arbitrumSepolia' | 'bnbTestnet'>('arbitrumSepolia');
+    useState<ApraxusNetworkKey>('arbitrumSepolia');
 
   const { switchChain } = useSwitchChain();
   const chainId = useChainId();
@@ -85,6 +87,7 @@ export const Navbar = () => {
 
   useEffect(() => {
     setMenuOpen(false);
+    setNetworkOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -96,10 +99,8 @@ export const Navbar = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const networkName =
-    selectedNetwork === 'arbitrumSepolia'
-      ? 'Arbitrum Sepolia'
-      : 'BNB Testnet';
+  const activeNetwork = APRAXUS_NETWORKS[selectedNetwork];
+  const networkName = activeNetwork.name;
 
   async function toggleNetwork() {
     const nextNetwork =
@@ -164,16 +165,106 @@ export const Navbar = () => {
           </nav>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={toggleNetwork}
-              className="hidden items-center gap-2 rounded-full border border-white/[0.09] bg-white/[0.03] px-3.5 py-2 text-xs text-zinc-300 transition hover:border-white/[0.18] hover:bg-white/[0.06] sm:inline-flex"
-              aria-label="Switch testnet"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.8)]" />
-              {networkName}
-              <ChevronDown className="h-3.5 w-3.5 text-zinc-500" />
-            </button>
+            <div className="relative hidden sm:block">
+              <button
+                type="button"
+                onClick={() => setNetworkOpen((value) => !value)}
+                className="inline-flex items-center gap-2 rounded-full border border-white/[0.09] bg-white/[0.03] px-3.5 py-2 text-xs text-zinc-300 transition hover:border-white/[0.18] hover:bg-white/[0.06]"
+                aria-label="Select testnet"
+                aria-expanded={networkOpen}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.8)]" />
+                <span>{networkName}</span>
+                <ChevronDown
+                  className={`h-3.5 w-3.5 text-zinc-500 transition-transform duration-200 ${
+                    networkOpen ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+
+              {networkOpen && (
+                <div className="absolute right-0 top-[calc(100%+10px)] w-[340px] overflow-hidden rounded-2xl border border-white/[0.1] bg-[#08080b]/95 p-2 shadow-2xl backdrop-blur-2xl">
+                  <div className="px-3 py-2">
+                    <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-zinc-600">
+                      Execution network
+                    </p>
+                    <p className="mt-1 text-xs text-zinc-500">
+                      Select the testnet used by wallet-connected features.
+                    </p>
+                  </div>
+
+                  {(Object.keys(APRAXUS_NETWORKS) as ApraxusNetworkKey[]).map((key) => {
+                    const network = APRAXUS_NETWORKS[key];
+                    const selected = key === selectedNetwork;
+
+                    return (
+                      <div
+                        key={network.key}
+                        className={`rounded-xl border p-3 transition ${
+                          selected
+                            ? 'border-purple-500/30 bg-purple-500/[0.08]'
+                            : 'border-transparent hover:border-white/[0.08] hover:bg-white/[0.035]'
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (key !== selectedNetwork) {
+                              try {
+                                await switchChain({ chainId: network.chainId });
+                                setSelectedNetwork(key);
+                              } catch {
+                                return;
+                              }
+                            }
+                            setNetworkOpen(false);
+                          }}
+                          className="flex w-full items-start justify-between gap-4 text-left"
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  selected ? 'bg-emerald-400' : 'bg-zinc-600'
+                                }`}
+                              />
+                              <span className="text-sm font-medium text-white">
+                                {network.name}
+                              </span>
+                            </div>
+                            <div className="mt-1 font-mono text-[10px] text-zinc-500">
+                              {network.environment} · Chain {network.chainId}
+                            </div>
+                          </div>
+
+                          {selected && (
+                            <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-400">
+                              Active
+                            </span>
+                          )}
+                        </button>
+
+                        <div className="mt-3 flex items-center justify-between border-t border-white/[0.06] pt-2">
+                          <span className="font-mono text-[9px] text-zinc-600">
+                            APXS {network.apxs.slice(0, 6)}…{network.apxs.slice(-4)}
+                          </span>
+
+                          <a
+                            href={network.apxsExplorer}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(event) => event.stopPropagation()}
+                            className="font-mono text-[9px] uppercase tracking-wider text-zinc-500 transition hover:text-white"
+                          >
+                            Explorer ↗
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             <a
               href="https://github.com/apraxusblockchain/apraxus-website"
@@ -267,8 +358,74 @@ export const Navbar = () => {
             </div>
 
             <div className="mt-12 flex flex-col gap-4 border-t border-white/[0.08] pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-600">
-                {networkName} / TESTNET
+              <div className="flex flex-col gap-2">
+                <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-zinc-600">
+                  Active execution network
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setNetworkOpen((value) => !value)}
+                  className="inline-flex w-fit items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-zinc-300 transition hover:border-white/[0.16] hover:bg-white/[0.06]"
+                  aria-expanded={networkOpen}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,.7)]" />
+                  {networkName} · Chain {activeNetwork.chainId}
+                  <ChevronDown
+                    className={`h-3 w-3 text-zinc-500 transition-transform duration-200 ${
+                      networkOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+
+                {networkOpen && (
+                  <div className="flex flex-col gap-2 pt-1">
+                    {(Object.keys(APRAXUS_NETWORKS) as ApraxusNetworkKey[]).map((key) => {
+                      const network = APRAXUS_NETWORKS[key];
+                      const selected = key === selectedNetwork;
+
+                      return (
+                        <button
+                          key={network.key}
+                          type="button"
+                          onClick={async () => {
+                            if (key !== selectedNetwork) {
+                              try {
+                                await switchChain({ chainId: network.chainId });
+                                setSelectedNetwork(key);
+                              } catch {
+                                return;
+                              }
+                            }
+                            setNetworkOpen(false);
+                          }}
+                          className={`flex items-center justify-between rounded-xl border px-3 py-3 text-left transition ${
+                            selected
+                              ? 'border-purple-500/30 bg-purple-500/[0.08]'
+                              : 'border-white/[0.06] bg-white/[0.015] hover:border-white/[0.12]'
+                          }`}
+                        >
+                          <div>
+                            <div className="text-xs font-medium text-white">
+                              {network.name}
+                            </div>
+                            <div className="mt-1 font-mono text-[9px] text-zinc-600">
+                              {network.environment} · Chain {network.chainId}
+                            </div>
+                          </div>
+
+                          <span
+                            className={`font-mono text-[9px] uppercase tracking-wider ${
+                              selected ? 'text-emerald-400' : 'text-zinc-600'
+                            }`}
+                          >
+                            {selected ? 'Active' : 'Switch'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <Link
