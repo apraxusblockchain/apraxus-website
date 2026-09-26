@@ -8,6 +8,8 @@ import {
   Network,
   ShieldCheck,
 } from 'lucide-react';
+import { APRAXUS_NETWORKS } from "@/lib/web3/network-registry";
+import CopyAddressButton from "@/components/ui/CopyAddressButton";
 
 export const metadata = {
   title: 'APXS | Apraxus',
@@ -15,16 +17,10 @@ export const metadata = {
     'APXS token overview, Arbitrum Sepolia testnet deployment, contract information and developing utility.',
 };
 
-const CONTRACT =
-  '0xFE16213961cb4f9B15301f730a5977b9A145add5';
-
-const ARBISCAN =
-  `https://sepolia.arbiscan.io/token/${CONTRACT}`;
-
 const facts = [
   ['Token', 'APXS'],
-  ['Network', 'Arbitrum Sepolia'],
-  ['Chain ID', '421614'],
+  ['Deployments', 'Arbitrum Sepolia · BNB Testnet'],
+  ['Chain IDs', '421614 · 97'],
   ['Decimals', '8'],
   ['Maximum Supply', '1,000,000,000 APXS'],
   ['Environment', 'Testnet'],
@@ -62,25 +58,17 @@ export default function ApxsPage() {
                   Testnet Status
                 </p>
                 <h2 className="mt-2 text-xl font-semibold">
-                  APXS is currently a testnet deployment
+                  APXS is currently deployed on testnets
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-                  The current APXS contract runs on Arbitrum Sepolia and is
-                  intended for development, integration and protocol testing.
-                  It should not be treated as the production APXS deployment.
+                  APXS is currently deployed on Arbitrum Sepolia and BNB
+                  Testnet for development, integration and protocol testing.
+                  These deployments should not be treated as production APXS
+                  deployments.
                 </p>
               </div>
             </div>
 
-            <a
-              href={ARBISCAN}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/[0.05]"
-            >
-              View Contract
-              <ExternalLink className="h-4 w-4" />
-            </a>
           </div>
         </section>
 
@@ -100,72 +88,67 @@ export default function ApxsPage() {
           </div>
         </section>
 
-        <section className="mt-16 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl border border-white/10 p-6 sm:p-8">
-            <div className="flex items-center gap-3">
-              <Network className="h-5 w-5 text-purple-300" />
-              <h2 className="text-2xl font-semibold">Contract & Network</h2>
-            </div>
-
-            <div className="mt-7 space-y-5">
-              <div>
-                <p className="text-xs font-mono uppercase tracking-[0.16em] text-zinc-500">
-                  Contract Address
-                </p>
-                <p className="mt-2 break-all font-mono text-sm text-zinc-300">
-                  {CONTRACT}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs font-mono uppercase tracking-[0.16em] text-zinc-500">
-                  Explorer
-                </p>
-                <a
-                  href={ARBISCAN}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 inline-flex items-center gap-2 text-sm text-purple-300 hover:text-white"
-                >
-                  Arbiscan Token Page
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              </div>
-
-              <div>
-                <p className="text-xs font-mono uppercase tracking-[0.16em] text-zinc-500">
-                  Current Network
-                </p>
-                <p className="mt-2 text-sm text-zinc-300">
-                  Arbitrum Sepolia · Chain ID 421614
-                </p>
-              </div>
-            </div>
+        <section className="mt-16">
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-mono uppercase tracking-[0.2em] text-purple-400">
+              Deployments
+            </p>
+            <h2 className="text-3xl font-semibold">
+              APXS testnet contracts
+            </h2>
+            <p className="max-w-3xl text-sm leading-7 text-zinc-500">
+              Current APXS deployments configured in the shared Apraxus network
+              registry. Each address can be verified directly on its network
+              explorer.
+            </p>
           </div>
 
-          <div className="rounded-2xl border border-white/10 p-6 sm:p-8">
-            <div className="flex items-center gap-3">
-              <ShieldCheck className="h-5 w-5 text-emerald-300" />
-              <h2 className="text-2xl font-semibold">Current Token Facts</h2>
-            </div>
+          <div className="mt-8 grid gap-5 lg:grid-cols-2">
+            {Object.values(APRAXUS_NETWORKS).map((network) => (
+              <div
+                key={network.key}
+                className="group rounded-2xl border border-white/10 bg-white/[0.02] p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/[0.16] hover:bg-white/[0.035] sm:p-8"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.7)]" />
+                      <h3 className="text-xl font-semibold">{network.name}</h3>
+                    </div>
+                    <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-600">
+                      {network.environment} · Chain {network.chainId}
+                    </p>
+                  </div>
 
-            <ul className="mt-7 space-y-4">
-              {[
-                'Fixed maximum supply of 1 billion APXS.',
-                '8 decimal places.',
-                'Deployed on Arbitrum Sepolia for testnet use.',
-                'Used in current testnet payment and liquidity workflows.',
-                'Contract information is publicly verifiable on Arbiscan.',
-              ].map((item) => (
-                <li
-                  key={item}
-                  className="flex gap-3 text-sm leading-6 text-zinc-400"
-                >
-                  <CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-300" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
+                  <span className="rounded-full border border-purple-400/15 bg-purple-400/[0.04] px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider text-purple-300">
+                    APXS
+                  </span>
+                </div>
+
+                <div className="mt-7 rounded-xl border border-white/[0.07] bg-black/20 p-4">
+                  <p className="text-[10px] font-mono uppercase tracking-[0.16em] text-zinc-600">
+                    Contract Address
+                  </p>
+                  <p className="mt-2 break-all font-mono text-xs leading-6 text-zinc-300">
+                    {network.apxs}
+                  </p>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <CopyAddressButton address={network.apxs} />
+
+                  <a
+                    href={network.apxsExplorer}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3.5 py-2 text-xs font-medium text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.05] hover:text-white"
+                  >
+                    Explorer
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
