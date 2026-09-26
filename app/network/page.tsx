@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import APXSWallet from "@/components/ui/APXSWallet";
+import { APRAXUS_NETWORKS } from "@/lib/web3/network-registry";
 import {
   Activity,
   Blocks,
@@ -1192,28 +1193,80 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
         </div>
 
         <div className="mt-6 glass-panel p-8 rounded-2xl border border-white/10">
-          <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
-            APXS Testnet Contract
-          </span>
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
+              EVM Testnet Deployments
+            </span>
+            <h2 className="text-2xl font-semibold tracking-tight text-white">
+              APXS contract registry
+            </h2>
+            <p className="max-w-2xl text-sm leading-6 text-zinc-500">
+              Verified APXS deployments currently configured for development and
+              testnet execution. Addresses are shown from the shared protocol
+              network registry.
+            </p>
+          </div>
 
-          <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-sm text-zinc-400">
-                Arbitrum Sepolia
-              </p>
-              <p className="mt-2 break-all font-mono text-sm text-white">
-                0xFE16213961cb4f9B15301f730a5977b9A145add5
-              </p>
-            </div>
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            {Object.values(APRAXUS_NETWORKS).map((network) => (
+              <div
+                key={network.key}
+                className="group rounded-2xl border border-white/[0.08] bg-black/30 p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/[0.16] hover:bg-white/[0.025]"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.7)]" />
+                      <span className="text-sm font-semibold text-white">
+                        {network.name}
+                      </span>
+                    </div>
+                    <span className="mt-1 block font-mono text-[10px] uppercase tracking-wider text-zinc-600">
+                      {network.environment} · Chain {network.chainId}
+                    </span>
+                  </div>
 
-            <a
-              href="https://sepolia.arbiscan.io/token/0xFE16213961cb4f9B15301f730a5977b9A145add5"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex w-fit rounded-xl border border-white/15 px-5 py-3 text-sm transition hover:bg-white/5"
-            >
-              View on Arbiscan →
-            </a>
+                  <span className="rounded-full border border-white/[0.08] px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider text-zinc-500">
+                    APXS
+                  </span>
+                </div>
+
+                <div className="mt-5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-zinc-600">
+                      Contract address
+                    </span>
+                    <span className="font-mono text-[9px] text-zinc-600">
+                      8 decimals
+                    </span>
+                  </div>
+
+                  <code className="block break-all font-mono text-xs leading-6 text-zinc-300">
+                    {network.apxs}
+                  </code>
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => navigator.clipboard.writeText(network.apxs)}
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-zinc-400 transition hover:border-white/[0.16] hover:bg-white/[0.05] hover:text-white"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    Copy address
+                  </button>
+
+                  <a
+                    href={network.apxsExplorer}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-zinc-400 transition hover:border-white/[0.16] hover:bg-white/[0.05] hover:text-white"
+                  >
+                    View contract ↗
+                  </a>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
