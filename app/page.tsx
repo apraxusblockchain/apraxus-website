@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 
 import { WebGLScene } from '@/components/canvas/WebGLScene';
+import { LiveNetworkStats } from '@/components/ui/LiveNetworkStats';
 
 const architecture = [
   {
@@ -231,6 +232,8 @@ export default function HomePage() {
         </div>
       </section>
 
+      <LiveNetworkStats />
+
       {/* THESIS */}
       <section className="apx-section apx-thesis">
         <div className="apx-container">
@@ -353,7 +356,7 @@ export default function HomePage() {
       <section className="apx-section apx-state">
         <div className="apx-container">
           <div className="apx-state-header">
-            <SectionLabel index="03">PROTOCOL STATE</SectionLabel>
+            <SectionLabel index="03">BUILD STATUS</SectionLabel>
             <p>
               Apraxus separates deployed functionality from active development
               and longer-term research. This distinction is intentional.
@@ -504,69 +507,6 @@ export default function HomePage() {
                 </div>
               </Link>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* DEVELOPER */}
-      <section className="apx-section apx-developer">
-        <div className="apx-container">
-          <div className="apx-developer-grid">
-            <div>
-              <SectionLabel index="06">DEVELOPER INFRASTRUCTURE</SectionLabel>
-
-              <h2 className="apx-display-heading">
-                Build the interface
-                <span>before the economy.</span>
-              </h2>
-
-              <p className="apx-large-copy">
-                Developers need observable infrastructure before autonomous
-                systems can become dependable. Apraxus exposes the building
-                blocks needed to experiment with that model today.
-              </p>
-
-              <div className="apx-dev-capabilities">
-                <div><Code2 /><span>API v1</span></div>
-                <div><Layers3 /><span>SDK FOUNDATION</span></div>
-                <div><Cpu /><span>SIMULATION</span></div>
-                <div><Globe2 /><span>METRICS</span></div>
-              </div>
-
-              <ArrowLink href="/developers">Open developer platform</ArrowLink>
-            </div>
-
-            <div className="apx-code-window">
-              <div className="apx-code-header">
-                <div className="apx-window-dots">
-                  <i /><i /><i />
-                </div>
-                <span>execution.ts</span>
-                <span className="apx-code-readonly">READ ONLY</span>
-              </div>
-
-              <div className="apx-code-line-numbers">
-                {Array.from({ length: 18 }, (_, i) => <span key={i}>{String(i + 1).padStart(2, '0')}</span>)}
-              </div>
-
-              <pre>
-<span className="code-purple">const</span>{' execution = '}<span className="code-blue">await</span>{' apraxus.execute({\n'}
-{'  agent: '}<span className="code-green">agentId</span>{',\n'}
-{'  intent: '}<span className="code-string">"authorized action"</span>{',\n'}
-{'  policy: '}<span className="code-green">policyId</span>{',\n'}
-{'  wallet: '}<span className="code-green">walletId</span>{',\n'}
-{'});\n\n'}
-<span className="code-purple">const</span>{' receipt = execution.receipt;\n\n'}
-<span className="code-blue">if</span>{' (receipt.status === '}<span className="code-string">"verified"</span>{') {\n'}
-{'  '}<span className="code-green">console</span>{'.log(receipt);\n'}
-{'}'}
-              </pre>
-
-              <div className="apx-code-footer">
-                <span><i /> SIMULATION READY</span>
-                <span>APRX / API_V1</span>
-              </div>
-            </div>
           </div>
         </div>
       </section>

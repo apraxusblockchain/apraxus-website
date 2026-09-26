@@ -49,21 +49,19 @@ export const LiveNetworkStats: React.FC = () => {
 
   const stats = [
     {
-      label: 'LATEST BLOCKS',
+      label: 'LATEST BLOCK',
       value: data ? data.blockchain.blocks.toLocaleString() : '—',
       sub: 'Apraxus backend height',
-      highlight: 'text-[#38E8F8]',
-      badge: 'LIVE',
+      accent: 'text-[#38E8F8]',
       icon: Blocks,
     },
     {
       label: 'TOTAL SUPPLY',
       value: data
-         ? `${(data.blockchain.total_supply / 100_000_000).toLocaleString()} APXS`
+        ? `${(data.blockchain.total_supply / 100_000_000).toLocaleString()} APXS`
         : '—',
-      sub: 'APXS token supply',
-      highlight: 'text-[#7B5CFA]',
-      badge: data?.health.token || 'APXS',
+      sub: 'Current backend supply',
+      accent: 'text-[#9B7CFF]',
       icon: Database,
     },
     {
@@ -73,12 +71,11 @@ export const LiveNetworkStats: React.FC = () => {
         : error
           ? 'OFFLINE'
           : 'LOADING',
-      sub: data?.health.network || 'Apraxus backend status',
-      highlight:
+      sub: data?.health.network || 'Apraxus backend',
+      accent:
         data?.health.status === 'ok'
           ? 'text-emerald-400'
           : 'text-zinc-400',
-      badge: 'LIVE API',
       icon: Activity,
     },
     {
@@ -89,57 +86,69 @@ export const LiveNetworkStats: React.FC = () => {
           : 'INVALID'
         : '—',
       sub: 'Backend chain verification',
-      highlight: data?.blockchain.valid
+      accent: data?.blockchain.valid
         ? 'text-emerald-400'
         : 'text-red-400',
-      badge: 'VERIFIED',
       icon: ShieldCheck,
     },
   ];
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-20">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, idx) => {
-          const Icon = stat.icon;
+    <section className="relative z-20 px-4 sm:px-6 lg:px-8 pt-10 pb-4">
+      <div className="apx-container">
+        <div className="flex items-end justify-between gap-6 mb-5">
+          <div>
+            <div className="apx-eyebrow">Live Protocol State</div>
+            <p className="mt-2 text-sm text-zinc-500">
+              Real-time telemetry from the Apraxus Core API.
+            </p>
+          </div>
 
-          return (
-            <div
-              key={idx}
-              className="glass-card glass-card-hover p-6 rounded-2xl border border-white/[0.08] flex flex-col justify-between gap-4 relative overflow-hidden group shadow-2xl"
-            >
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#7B5CFA]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="hidden sm:flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.7)]" />
+            Refreshing · 10s
+          </div>
+        </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase font-semibold">
-                  {stat.label}
-                </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.06]">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
 
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/5 text-zinc-400 group-hover:text-white transition-colors">
-                  {stat.badge}
-                </span>
-              </div>
+            return (
+              <div
+                key={stat.label}
+                className="group relative min-h-[178px] bg-[#0A0A0D] p-5 sm:p-6 transition-colors duration-300 hover:bg-[#0D0D12]"
+              >
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.12] to-transparent" />
 
-              <div>
-                <div
-                  className={`text-2xl sm:text-3xl font-bold font-mono tracking-tight ${stat.highlight}`}
-                >
-                  {stat.value}
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-semibold uppercase tracking-[0.18em] text-zinc-600">
+                    {stat.label}
+                  </span>
+
+                  <Icon
+                    className={`h-4 w-4 ${stat.accent} opacity-70 transition-transform duration-300 group-hover:scale-110`}
+                  />
                 </div>
 
-                <p className="text-xs text-zinc-400 mt-1 font-sans">
-                  {stat.sub}
-                </p>
-              </div>
+                <div className="mt-8">
+                  <div
+                    className={`font-mono text-2xl sm:text-[28px] font-medium tracking-tight ${stat.accent}`}
+                  >
+                    {stat.value}
+                  </div>
 
-              <div className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-500 pt-2 border-t border-white/5">
-                <Icon className="w-3.5 h-3.5 text-[#7B5CFA]" />
-                <span>Apraxus Core API</span>
+                  <p className="mt-2 text-xs text-zinc-600">
+                    {stat.sub}
+                  </p>
+                </div>
+
+                <div className="absolute bottom-0 left-5 right-5 h-px bg-white/[0.04]" />
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </section>
   );
 };

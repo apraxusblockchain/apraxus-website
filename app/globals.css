@@ -308,7 +308,7 @@ body {
 
 .apx-hero {
   position: relative;
-  min-height: 940px;
+  min-height: 860px;
   display: flex;
   align-items: center;
   isolation: isolate;
@@ -356,7 +356,7 @@ body {
   position: relative;
   z-index: 3;
   width: 100%;
-  min-height: 940px;
+  min-height: 860px;
   padding-top: 150px;
   padding-bottom: 80px;
   display: flex;
@@ -494,7 +494,7 @@ body {
 .apx-hero-terminal {
   position: relative;
   width: min(100%, 640px);
-  margin: 58px auto 0;
+  margin: 44px auto 0;
   border: 1px solid rgba(255,255,255,.105);
   background:
     linear-gradient(135deg, rgba(255,255,255,.025), transparent 42%),
@@ -698,7 +698,7 @@ body {
 
 .apx-flow-node {
   position: relative;
-  min-height: 310px;
+  min-height: 270px;
   padding: 22px;
   background:
     linear-gradient(155deg, rgba(255,255,255,.018), transparent 34%),
@@ -748,7 +748,7 @@ body {
   position: relative;
   width: 42px;
   height: 42px;
-  margin-top: 58px;
+  margin-top: 42px;
   display: grid;
   place-items: center;
   border: 1px solid rgba(139,92,246,.22);
@@ -790,7 +790,7 @@ body {
 }
 
 .apx-flow-content {
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
 .apx-flow-content > span {
