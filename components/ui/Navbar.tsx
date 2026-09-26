@@ -7,108 +7,53 @@ import { Logo } from './Logo';
 import { arbitrumSepolia, bscTestnet } from 'viem/chains';
 import { useChainId, useSwitchChain } from 'wagmi';
 import {
-  Menu,
-  X,
   ArrowUpRight,
-  Network,
-  Bot,
-  CreditCard,
-  Code2,
   BookOpen,
-  Layers,
-  Globe2,
-  ShieldCheck,
+  Bot,
+  ChevronDown,
+  Code2,
+  CreditCard,
   GitBranch,
-  Info,
-  HelpCircle,
-
+  Layers3,
+  Menu,
+  Network,
+  ShieldCheck,
+  X,
 } from 'lucide-react';
 
 const NAV_GROUPS = [
   {
-    title: 'Product',
+    title: 'Protocol',
     items: [
-      {
-        name: 'Network',
-        href: '/network',
-        desc: 'Wallet, APXS & testnet swap',
-        icon: Network,
-      },
-      {
-        name: 'AI Agents',
-        href: '/agents',
-        desc: 'Infrastructure for autonomous execution',
-        icon: Bot,
-      },
-      {
-        name: 'Payments',
-        href: '/payments',
-        desc: 'Programmable machine-to-machine payments',
-        icon: CreditCard,
-      },
+      { name: 'Architecture', href: '/technology', desc: 'How Apraxus is structured', icon: Layers3 },
+      { name: 'AI Agents', href: '/agents', desc: 'Identity, policy and execution', icon: Bot },
+      { name: 'Payments', href: '/payments', desc: 'Programmable machine payments', icon: CreditCard },
+      { name: 'Security', href: '/security', desc: 'Security model and controls', icon: ShieldCheck },
     ],
   },
   {
-    title: 'Technology',
+    title: 'Network',
     items: [
-      {
-        name: 'Technology',
-        href: '/technology',
-        desc: 'Architecture, primitives & implementation',
-        icon: Layers,
-      },
-      {
-        name: 'Developers',
-        href: '/developers',
-        desc: 'Tools, SDKs & builder resources',
-        icon: Code2,
-      },
-      {
-        name: 'Documentation',
-        href: '/docs',
-        desc: 'Technical references and guides',
-        icon: BookOpen,
-      },
+      { name: 'Network', href: '/network', desc: 'Testnet activity and on-chain data', icon: Network },
+      { name: 'APXS', href: '/apxs', desc: 'Token and contract information', icon: Layers3 },
+      { name: 'Liquidity', href: '/liquidity', desc: 'Testnet liquidity infrastructure', icon: Network },
+      { name: 'Ecosystem', href: '/ecosystem', desc: 'Applications and integrations', icon: Layers3 },
     ],
   },
   {
-    title: 'Ecosystem',
+    title: 'Build',
     items: [
-      {
-        name: 'Ecosystem',
-        href: '/ecosystem',
-        desc: 'Applications, integrations & categories',
-        icon: Globe2,
-      },
-      {
-        name: 'Security',
-        href: '/security',
-        desc: 'Security model and disclosure',
-        icon: ShieldCheck,
-      },
-      {
-        name: 'Roadmap',
-        href: '/roadmap',
-        desc: 'Development progress and milestones',
-        icon: GitBranch,
-      },
+      { name: 'Developers', href: '/developers', desc: 'Build with Apraxus', icon: Code2 },
+      { name: 'Documentation', href: '/docs', desc: 'Protocol and developer references', icon: BookOpen },
+      { name: 'Dashboard', href: '/developers/dashboard', desc: 'Development execution console', icon: Network },
     ],
   },
   {
-    title: 'About',
+    title: 'Resources',
     items: [
-      {
-        name: 'About',
-        href: '/about',
-        desc: 'Apraxus vision and mission',
-        icon: Info,
-      },
-      {
-        name: 'FAQ',
-        href: '/faq',
-        desc: 'Answers to common questions',
-        icon: HelpCircle,
-      },
+      { name: 'Whitepaper', href: '/whitepaper', desc: 'Canonical protocol specification', icon: BookOpen },
+      { name: 'Roadmap', href: '/roadmap', desc: 'Development direction', icon: GitBranch },
+      { name: 'About', href: '/about', desc: 'Vision and mission', icon: Layers3 },
     ],
   },
 ];
@@ -116,7 +61,9 @@ const NAV_GROUPS = [
 export const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [selectedNetwork, setSelectedNetwork] = useState<'arbitrumSepolia' | 'bnbTestnet'>('arbitrumSepolia');
+  const [selectedNetwork, setSelectedNetwork] =
+    useState<'arbitrumSepolia' | 'bnbTestnet'>('arbitrumSepolia');
+
   const { switchChain } = useSwitchChain();
   const chainId = useChainId();
   const pathname = usePathname();
@@ -130,12 +77,8 @@ export const Navbar = () => {
   }, [chainId]);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-
+    const handleScroll = () => setScrolled(window.scrollY > 24);
     handleScroll();
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -146,209 +89,196 @@ export const Navbar = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setMenuOpen(false);
-      }
+      if (event.key === 'Escape') setMenuOpen(false);
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const networkName =
+    selectedNetwork === 'arbitrumSepolia'
+      ? 'Arbitrum Sepolia'
+      : 'BNB Testnet';
+
+  async function toggleNetwork() {
+    const nextNetwork =
+      selectedNetwork === 'arbitrumSepolia'
+        ? 'bnbTestnet'
+        : 'arbitrumSepolia';
+
+    try {
+      await switchChain({
+        chainId:
+          nextNetwork === 'arbitrumSepolia'
+            ? arbitrumSepolia.id
+            : bscTestnet.id,
+      });
+
+      setSelectedNetwork(nextNetwork);
+    } catch {
+      // Preserve current network selection when wallet rejects the switch.
+    }
+  }
+
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
           scrolled
-            ? 'bg-[#030305]/85 backdrop-blur-2xl border-b border-white/[0.07] py-3.5 shadow-[0_15px_35px_rgba(0,0,0,0.55)]'
+            ? 'border-b border-white/[0.07] bg-black/75 py-3 backdrop-blur-2xl'
             : 'bg-transparent py-5'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          <Logo size="md" withWordmark={true} />
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Logo size="md" withWordmark />
 
-          <div className="flex items-center gap-2.5">
-            <div className="relative hidden sm:block">
-              <button
-                type="button"
-                onClick={async () => {
-                  const nextNetwork =
-                    selectedNetwork === 'arbitrumSepolia'
-                      ? 'bnbTestnet'
-                      : 'arbitrumSepolia';
-
-                  try {
-                    await switchChain({
-                      chainId:
-                        nextNetwork === 'arbitrumSepolia'
-                          ? arbitrumSepolia.id
-                          : bscTestnet.id,
-                    });
-                    setSelectedNetwork(nextNetwork);
-                  } catch {
-                    // Keep the current selection if the wallet rejects the switch.
-                  }
-                }}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white/[0.03] border border-white/[0.08] text-xs font-mono text-zinc-300 hover:bg-white/[0.06] hover:border-white/[0.14] transition-all"
-                aria-label="Switch testnet"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span>
-                  {selectedNetwork === 'arbitrumSepolia'
-                    ? 'Arbitrum Sepolia'
-                    : 'BNB Testnet'}
-                </span>
-                <span className="text-zinc-500">⌄</span>
-              </button>
-            </div>
+          <nav className="hidden items-center gap-1 lg:flex">
+            <Link
+              href="/technology"
+              className="rounded-full px-4 py-2 text-sm text-zinc-400 transition hover:bg-white/[0.05] hover:text-white"
+            >
+              Protocol
+            </Link>
 
             <Link
               href="/network"
-              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#7B5CFA]/10 border border-[#7B5CFA]/30 text-xs font-mono text-[#C7BCFF] hover:bg-[#7B5CFA]/20 hover:border-[#7B5CFA]/50 transition-all"
+              className="rounded-full px-4 py-2 text-sm text-zinc-400 transition hover:bg-white/[0.05] hover:text-white"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               Network
             </Link>
+
+            <Link
+              href="/developers"
+              className="rounded-full px-4 py-2 text-sm text-zinc-400 transition hover:bg-white/[0.05] hover:text-white"
+            >
+              Developers
+            </Link>
+
+            <Link
+              href="/whitepaper"
+              className="rounded-full px-4 py-2 text-sm text-zinc-400 transition hover:bg-white/[0.05] hover:text-white"
+            >
+              Whitepaper
+            </Link>
+          </nav>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleNetwork}
+              className="hidden items-center gap-2 rounded-full border border-white/[0.09] bg-white/[0.03] px-3.5 py-2 text-xs text-zinc-300 transition hover:border-white/[0.18] hover:bg-white/[0.06] sm:inline-flex"
+              aria-label="Switch testnet"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.8)]" />
+              {networkName}
+              <ChevronDown className="h-3.5 w-3.5 text-zinc-500" />
+            </button>
 
             <a
               href="https://github.com/apraxusblockchain/apraxus-website"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden md:inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-xs font-mono text-zinc-200 transition-all"
+              className="hidden h-10 items-center gap-2 rounded-full border border-white/[0.09] bg-white/[0.03] px-4 text-xs text-zinc-300 transition hover:bg-white/[0.07] hover:text-white md:inline-flex"
             >
-              <GitBranch className="w-3.5 h-3.5" />
               GitHub
-              <ArrowUpRight className="w-3 h-3 text-zinc-500" />
+              <ArrowUpRight className="h-3.5 w-3.5 text-zinc-500" />
             </a>
 
             <button
               type="button"
-              onClick={() => setMenuOpen(!menuOpen)}
-              className={`relative flex items-center justify-center w-11 h-11 rounded-2xl border transition-all duration-300 ${
-                menuOpen
-                  ? 'bg-[#7B5CFA] border-[#7B5CFA] text-white shadow-[0_0_25px_rgba(123,92,250,0.45)]'
-                  : 'bg-[#0D0C11]/90 hover:bg-[#15141D] border-white/[0.12] hover:border-[#7B5CFA]/50 text-white'
-              }`}
+              onClick={() => setMenuOpen((value) => !value)}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.1] bg-white/[0.04] text-white transition hover:border-white/[0.2] hover:bg-white/[0.08]"
               aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
               aria-expanded={menuOpen}
             >
-              {menuOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5 text-[#7B5CFA]" />
-              )}
+              {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
           </div>
         </div>
       </header>
 
       {menuOpen && (
-        <div data-lenis-prevent-wheel className="fixed inset-0 z-40 bg-[#030305]/97 backdrop-blur-3xl overflow-y-auto overscroll-contain touch-pan-y">
-          <div className="min-h-full pt-28 pb-10 px-4 sm:px-8 lg:px-16">
-            <div className="max-w-7xl mx-auto">
-              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 pb-7 mb-8 border-b border-white/[0.08]">
-                <div>
-                  <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#7B5CFA] mb-2">
-                    Apraxus
-                  </p>
-
-                  <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
-                    Explore the platform
-                  </h2>
-
-                  <p className="text-sm text-zinc-500 mt-2 max-w-xl">
-                    Infrastructure, products, technology and development progress
-                    across the Apraxus ecosystem.
-                  </p>
-                </div>
-
-                <div className="text-xs font-mono text-zinc-600">
-                  Press <span className="text-zinc-300">ESC</span> to close
-                </div>
+        <div className="fixed inset-0 z-40 overflow-y-auto bg-black/95 pt-28 backdrop-blur-3xl">
+          <div className="mx-auto max-w-[1400px] px-4 pb-12 sm:px-8 lg:px-12">
+            <div className="mb-10 flex flex-col justify-between gap-4 border-b border-white/[0.08] pb-7 sm:flex-row sm:items-end">
+              <div>
+                <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.24em] text-zinc-500">
+                  APRAXUS / PLATFORM
+                </p>
+                <h2 className="text-3xl font-semibold tracking-[-0.04em] text-white sm:text-4xl">
+                  Explore the infrastructure.
+                </h2>
+                <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-500">
+                  Protocol architecture, network infrastructure, developer tooling and
+                  the systems being built for the autonomous economy.
+                </p>
               </div>
 
-              <div className="space-y-10">
-                {NAV_GROUPS.map((group) => (
-                  <section key={group.title}>
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">
-                        {group.title}
-                      </span>
-                      <div className="h-px flex-1 bg-white/[0.06]" />
-                    </div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-600">
+                ESC to close
+              </div>
+            </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {group.items.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = pathname === item.href;
+            <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+              {NAV_GROUPS.map((group) => (
+                <section key={group.title}>
+                  <div className="mb-4 flex items-center gap-3">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+                      {group.title}
+                    </span>
+                    <div className="h-px flex-1 bg-white/[0.07]" />
+                  </div>
 
-                        return (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={() => setMenuOpen(false)}
-                            className={`group flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 ${
-                              isActive
-                                ? 'bg-[#7B5CFA]/12 border-[#7B5CFA]/45'
-                                : 'bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.045] hover:border-[#7B5CFA]/30'
-                            }`}
-                          >
-                            <div
-                              className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                                isActive
-                                  ? 'bg-[#7B5CFA] text-white'
-                                  : 'bg-white/[0.05] text-[#9A86FF] group-hover:bg-[#7B5CFA]/15'
-                              }`}
-                            >
-                              <Icon className="w-4 h-4" />
+                  <div className="space-y-2">
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      const active = pathname === item.href;
+
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setMenuOpen(false)}
+                          className={`group flex gap-3 rounded-2xl border p-3.5 transition ${
+                            active
+                              ? 'border-white/[0.18] bg-white/[0.07]'
+                              : 'border-white/[0.06] bg-white/[0.015] hover:border-white/[0.14] hover:bg-white/[0.045]'
+                          }`}
+                        >
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04] text-zinc-400 transition group-hover:text-white">
+                            <Icon className="h-4 w-4" />
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium text-white">
+                              {item.name}
                             </div>
+                            <p className="mt-1 text-xs leading-5 text-zinc-500">
+                              {item.desc}
+                            </p>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
 
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={`text-sm font-semibold ${
-                                    isActive
-                                      ? 'text-white'
-                                      : 'text-zinc-200 group-hover:text-white'
-                                  }`}
-                                >
-                                  {item.name}
-                                </span>
-
-                                {isActive && (
-                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                )}
-                              </div>
-
-                              <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
-                                {item.desc}
-                              </p>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </section>
-                ))}
+            <div className="mt-12 flex flex-col gap-4 border-t border-white/[0.08] pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-zinc-600">
+                {networkName} / TESTNET
               </div>
 
-              <div className="mt-12 pt-6 border-t border-white/[0.08] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-2 text-xs font-mono text-zinc-500">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <span>Arbitrum Sepolia Testnet</span>
-                </div>
-
-                <a
-                  href="https://github.com/apraxusblockchain/apraxus-website"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-xs font-mono text-zinc-400 hover:text-white transition-colors"
-                >
-                  <GitBranch className="w-3.5 h-3.5" />
-                  View source on GitHub
-                  <ArrowUpRight className="w-3 h-3" />
-                </a>
-              </div>
+              <Link
+                href="/developers"
+                onClick={() => setMenuOpen(false)}
+                className="inline-flex items-center gap-2 text-sm text-zinc-300 transition hover:text-white"
+              >
+                Start building
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </div>
