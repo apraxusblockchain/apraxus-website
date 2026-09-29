@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `billing_customers_developer_unique` ON `billing_customers` (`developer_id`);

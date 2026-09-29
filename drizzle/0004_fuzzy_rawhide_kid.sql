@@ -1,0 +1,1 @@
+ALTER TABLE `billing_customers` ADD `developer_id` text REFERENCES developer_accounts(developer_id);

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `billing_records_reference_id_unique` ON `billing_records` (`reference_id`);

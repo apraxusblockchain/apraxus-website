@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `billing_subscriptions_active_customer_unique` ON `billing_subscriptions` (`customer_id`) WHERE status IN ('active', 'trialing');

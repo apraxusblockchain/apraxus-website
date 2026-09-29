@@ -1,0 +1,1 @@
+ALTER TABLE `agents` ADD `billing_customer_id` text REFERENCES billing_customers(customer_id);

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `agent_wallets_chain_wallet_unique` ON `agent_wallets` (`chain_id`,`wallet_address`);
