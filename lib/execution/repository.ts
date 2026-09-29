@@ -1,19 +1,53 @@
-// Development-only in-memory repository. Replace with durable storage before production execution history.
-
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { executions } from "@/lib/db/schema";
 import type { ExecutionRecord, ExecutionStatus } from "@/lib/execution/types";
 
-const records = new Map<string, ExecutionRecord>();
+function toExecutionRecord(
+  row: typeof executions.$inferSelect,
+): ExecutionRecord {
+  return {
+    requestId: row.requestId,
+    agentId: row.agentId,
+    walletAddress: row.walletAddress,
+    chainId: row.chainId,
+    tokenAddress: row.tokenAddress,
+    amount: row.amount,
+    recipient: row.recipient,
+    transactionHash: row.transactionHash ?? undefined,
+    blockNumber: row.blockNumber ?? undefined,
+    status: row.status as ExecutionStatus,
+    createdAt: row.createdAt,
+    confirmedAt: row.confirmedAt ?? undefined,
+  };
+}
 
 export function createExecutionRecord(
-  record: ExecutionRecord
+  record: ExecutionRecord,
 ): ExecutionRecord {
-  records.set(record.requestId, record);
+  db.insert(executions)
+    .values({
+      requestId: record.requestId,
+      agentId: record.agentId,
+      walletAddress: record.walletAddress,
+      chainId: record.chainId,
+      tokenAddress: record.tokenAddress,
+      amount: record.amount,
+      recipient: record.recipient,
+      transactionHash: record.transactionHash,
+      blockNumber: record.blockNumber,
+      status: record.status,
+      createdAt: record.createdAt,
+      confirmedAt: record.confirmedAt,
+    })
+    .run();
+
   return record;
 }
 
 function canTransition(
   current: ExecutionStatus,
-  next: ExecutionStatus
+  next: ExecutionStatus,
 ): boolean {
   if (current === next) {
     return true;
@@ -32,13 +66,19 @@ function canTransition(
 
 export function updateExecutionRecord(
   requestId: string,
-  updates: Partial<ExecutionRecord> & { status?: ExecutionStatus }
+  updates: Partial<ExecutionRecord> & { status?: ExecutionStatus },
 ): ExecutionRecord | null {
-  const existing = records.get(requestId);
+  const existingRow = db
+    .select()
+    .from(executions)
+    .where(eq(executions.requestId, requestId))
+    .get();
 
-  if (!existing) {
+  if (!existingRow) {
     return null;
   }
+
+  const existing = toExecutionRecord(existingRow);
 
   if (
     updates.status &&
@@ -47,21 +87,53 @@ export function updateExecutionRecord(
     return null;
   }
 
-  const updated = {
-    ...existing,
-    ...updates,
+  const next = {
+    walletAddress: updates.walletAddress,
+    chainId: updates.chainId,
+    tokenAddress: updates.tokenAddress,
+    amount: updates.amount,
+    recipient: updates.recipient,
+    transactionHash: updates.transactionHash,
+    blockNumber: updates.blockNumber,
+    status: updates.status,
+    createdAt: updates.createdAt,
+    confirmedAt: updates.confirmedAt,
   };
 
-  records.set(requestId, updated);
-  return updated;
+  const values = Object.fromEntries(
+    Object.entries(next).filter(([, value]) => value !== undefined),
+  );
+
+  db.update(executions)
+    .set(values)
+    .where(eq(executions.requestId, requestId))
+    .run();
+
+  const updatedRow = db
+    .select()
+    .from(executions)
+    .where(eq(executions.requestId, requestId))
+    .get();
+
+  return updatedRow ? toExecutionRecord(updatedRow) : null;
 }
 
 export function getExecutionRecord(
-  requestId: string
+  requestId: string,
 ): ExecutionRecord | null {
-  return records.get(requestId) ?? null;
+  const row = db
+    .select()
+    .from(executions)
+    .where(eq(executions.requestId, requestId))
+    .get();
+
+  return row ? toExecutionRecord(row) : null;
 }
 
 export function listExecutionRecords(): ExecutionRecord[] {
-  return Array.from(records.values());
+  return db
+    .select()
+    .from(executions)
+    .all()
+    .map(toExecutionRecord);
 }

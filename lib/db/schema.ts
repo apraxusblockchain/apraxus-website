@@ -119,3 +119,21 @@ export const billingRecords = sqliteTable(
     ),
   })
 );
+
+export const executions = sqliteTable("executions", {
+  requestId: text("request_id").primaryKey(),
+  agentId: text("agent_id")
+    .notNull()
+    .references(() => agents.agentId),
+  walletAddress: text("wallet_address").notNull(),
+  chainId: integer("chain_id").notNull(),
+  tokenAddress: text("token_address").notNull(),
+  amount: text("amount").notNull(),
+  recipient: text("recipient").notNull(),
+  transactionHash: text("transaction_hash"),
+  blockNumber: text("block_number"),
+  status: text("status").notNull(),
+  createdAt: text("created_at").notNull(),
+  confirmedAt: text("confirmed_at"),
+});
+
