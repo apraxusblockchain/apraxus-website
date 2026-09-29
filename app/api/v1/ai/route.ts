@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateApiKey } from "@/lib/api/auth";
 import { apiError } from "@/lib/api/errors";
-import { openai } from "@/lib/openai/client";
+import { getOpenAIClient } from "@/lib/openai/client";
 
 export async function POST(request: NextRequest) {
   const auth = validateApiKey(request);
@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const openai = getOpenAIClient();
     const response = await openai.responses.create({
       model: "gpt-5.6",
       input: body.prompt.trim(),
