@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.APRAXUS_API_KEY ?? ""}`,
+        "Idempotency-Key": request.headers.get("Idempotency-Key") ?? "",
       },
       body: JSON.stringify(body),
     });

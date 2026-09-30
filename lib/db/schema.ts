@@ -125,6 +125,7 @@ export const executions = sqliteTable("executions", {
   agentId: text("agent_id")
     .notNull()
     .references(() => agents.agentId),
+  idempotencyKey: text("idempotency_key"),
   walletAddress: text("wallet_address").notNull(),
   chainId: integer("chain_id").notNull(),
   tokenAddress: text("token_address").notNull(),
@@ -135,5 +136,10 @@ export const executions = sqliteTable("executions", {
   status: text("status").notNull(),
   createdAt: text("created_at").notNull(),
   confirmedAt: text("confirmed_at"),
-});
+}, (table) => ({
+  agentIdIdempotencyUnique: uniqueIndex("executions_agent_id_idempotency_unique").on(
+    table.agentId,
+    table.idempotencyKey,
+  ),
+}));
 

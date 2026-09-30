@@ -3,8 +3,14 @@ import { validateApiKey } from "@/lib/api/auth";
 import { createRequestId } from "@/lib/api/request-id";
 import { apiError } from "@/lib/api/errors";
 import { recordApiRequest } from "@/lib/api/metrics";
-import { createExecutionRecord } from "@/lib/execution/repository";
+import {
+  createExecutionRecord,
+  getExecutionRecordByIdempotencyKey,
+} from "@/lib/execution/repository";
 import { APXS_CHAINS } from "@/lib/web3/chains/apxs";
+import { getAgent } from "@/lib/agents/registry";
+import { getAgentWallet } from "@/lib/agents/wallets";
+import { evaluatePaymentPolicy } from "@/lib/policy/engine";
 
 export async function POST(request: NextRequest) {
   const auth = validateApiKey(request);
@@ -19,6 +25,24 @@ export async function POST(request: NextRequest) {
 
   try {
     recordApiRequest("/api/v1/executions");
+
+    const idempotencyKey = request.headers.get("Idempotency-Key")?.trim();
+
+    if (!idempotencyKey) {
+      return apiError(
+        "Idempotency-Key header is required",
+        400,
+        "MISSING_IDEMPOTENCY_KEY"
+      );
+    }
+
+    if (idempotencyKey.length > 255) {
+      return apiError(
+        "Idempotency-Key must be 255 characters or fewer",
+        400,
+        "INVALID_IDEMPOTENCY_KEY"
+      );
+    }
     const body = await request.json();
 
     const { agentId, wallet, token, amount, recipient, chainId } = body;
@@ -81,6 +105,59 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const agent = getAgent(
+      agentId.trim(),
+      auth.developerId ?? undefined
+    );
+
+    if (!agent) {
+      return apiError(
+        "Agent not found",
+        404,
+        "AGENT_NOT_FOUND"
+      );
+    }
+
+    if (agent.status !== "active") {
+      return apiError(
+        "Agent is not active",
+        409,
+        "AGENT_INACTIVE"
+      );
+    }
+
+    const policy = evaluatePaymentPolicy({
+      agentId: agentId.trim(),
+      amount,
+      destination: recipient.trim(),
+    });
+
+    if (!policy.allowed) {
+      return apiError(
+        "Execution violates the agent policy",
+        403,
+        "POLICY_DENIED"
+      );
+    }
+
+    const boundWallet = getAgentWallet(agentId.trim());
+
+    if (!boundWallet) {
+      return apiError(
+        "Agent wallet is not bound",
+        400,
+        "WALLET_NOT_BOUND"
+      );
+    }
+
+    if (boundWallet.walletAddress.toLowerCase() !== wallet.trim().toLowerCase()) {
+      return apiError(
+        "Execution wallet does not match the agent wallet",
+        403,
+        "WALLET_MISMATCH"
+      );
+    }
+
     const requestedChainId =
       chainId === undefined ? 421614 : Number(chainId);
 
@@ -99,16 +176,65 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (boundWallet.chainId !== requestedChainId) {
+      return apiError(
+        "Execution chain does not match the agent wallet chain",
+        403,
+        "WALLET_CHAIN_MISMATCH"
+      );
+    }
+
     const network =
       requestedChainId === 97
         ? "bnb-testnet"
         : "arbitrum-sepolia";
+
+    const existingExecution = getExecutionRecordByIdempotencyKey(
+      agentId.trim(),
+      idempotencyKey,
+    );
+
+    if (existingExecution) {
+      const sameRequest =
+        existingExecution.walletAddress.toLowerCase() === wallet.trim().toLowerCase() &&
+        existingExecution.chainId === requestedChainId &&
+        existingExecution.tokenAddress.toLowerCase() === chainConfig.address.toLowerCase() &&
+        existingExecution.amount === amount &&
+        existingExecution.recipient.toLowerCase() === recipient.trim().toLowerCase();
+
+      if (!sameRequest) {
+        return apiError(
+          "Idempotency-Key has already been used for a different execution request",
+          409,
+          "IDEMPOTENCY_CONFLICT"
+        );
+      }
+
+      return NextResponse.json({
+        requestId: existingExecution.requestId,
+        success: true,
+        type: "execution_intent",
+        status: existingExecution.status,
+        network,
+        agentId: existingExecution.agentId,
+        wallet: existingExecution.walletAddress,
+        token: "APXS",
+        amount: existingExecution.amount,
+        recipient: existingExecution.recipient,
+        execution: {
+          mode: "intent_only",
+          transactionSubmitted: Boolean(existingExecution.transactionHash),
+          transactionHash: existingExecution.transactionHash ?? null,
+        },
+      });
+    }
 
     const requestId = createRequestId("exec");
 
     createExecutionRecord({
       requestId,
       agentId: agentId.trim(),
+      idempotencyKey,
       walletAddress: wallet.trim(),
       chainId: requestedChainId,
       tokenAddress: chainConfig.address,

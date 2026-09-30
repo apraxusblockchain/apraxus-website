@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { executions } from "@/lib/db/schema";
 import type { ExecutionRecord, ExecutionStatus } from "@/lib/execution/types";
@@ -9,6 +9,7 @@ function toExecutionRecord(
   return {
     requestId: row.requestId,
     agentId: row.agentId,
+    idempotencyKey: row.idempotencyKey ?? undefined,
     walletAddress: row.walletAddress,
     chainId: row.chainId,
     tokenAddress: row.tokenAddress,
@@ -29,6 +30,7 @@ export function createExecutionRecord(
     .values({
       requestId: record.requestId,
       agentId: record.agentId,
+      idempotencyKey: record.idempotencyKey,
       walletAddress: record.walletAddress,
       chainId: record.chainId,
       tokenAddress: record.tokenAddress,
@@ -125,6 +127,24 @@ export function getExecutionRecord(
     .select()
     .from(executions)
     .where(eq(executions.requestId, requestId))
+    .get();
+
+  return row ? toExecutionRecord(row) : null;
+}
+
+export function getExecutionRecordByIdempotencyKey(
+  agentId: string,
+  idempotencyKey: string,
+): ExecutionRecord | null {
+  const row = db
+    .select()
+    .from(executions)
+    .where(
+      and(
+        eq(executions.agentId, agentId),
+        eq(executions.idempotencyKey, idempotencyKey),
+      ),
+    )
     .get();
 
   return row ? toExecutionRecord(row) : null;

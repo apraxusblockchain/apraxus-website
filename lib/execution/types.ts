@@ -8,6 +8,7 @@ export type ExecutionStatus =
 export type ExecutionRecord = {
   requestId: string;
   agentId: string;
+  idempotencyKey?: string;
   walletAddress: string;
   chainId: number;
   tokenAddress: string;
