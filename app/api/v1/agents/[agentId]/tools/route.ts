@@ -5,7 +5,7 @@ import {
   executeAgentTool,
   resolveAgentRuntime,
 } from "@/lib/agents/runtime";
-import type { AgentToolName } from "@/lib/agents/tools/types";
+import { isAgentToolName } from "@/lib/agents/tools";
 
 export async function POST(
   request: NextRequest,
@@ -40,6 +40,14 @@ export async function POST(
     );
   }
 
+  if (!isAgentToolName(body.tool)) {
+    return apiError(
+      "Unknown agent tool",
+      400,
+      "UNKNOWN_AGENT_TOOL",
+    );
+  }
+
   const context = resolveAgentRuntime({
     agentId,
     developerId: auth.developerId,
@@ -56,7 +64,7 @@ export async function POST(
   try {
     const result = await executeAgentTool(
       context,
-      body.tool as AgentToolName,
+      body.tool,
       body.input &&
       typeof body.input === "object" &&
       !Array.isArray(body.input)

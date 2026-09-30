@@ -7,6 +7,10 @@ const tools: Record<AgentToolName, AgentTool> = {
   create_payment_intent: createPaymentIntentTool,
 };
 
+export function isAgentToolName(name: string): name is AgentToolName {
+  return name in tools;
+}
+
 export function getAgentTool(name: AgentToolName): AgentTool {
   return tools[name];
 }
