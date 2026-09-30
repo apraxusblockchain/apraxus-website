@@ -1,12 +1,12 @@
 import { isAddress } from "viem";
 
-export const DAILY_LIMIT = 100;
-export const PER_TX_LIMIT = 10;
+import { getAgentPolicy } from "@/lib/policy/registry";
+import { getPolicyAccounting } from "@/lib/policy/accounting";
 
 export type PaymentPolicyInput = {
+  agentId: string;
   amount: string;
   destination: string;
-  spent?: number;
 };
 
 export type PaymentPolicyResult = {
@@ -15,12 +15,21 @@ export type PaymentPolicyResult = {
   withinDailyLimit: boolean;
   approvedDestination: boolean;
   allowed: boolean;
+  dailyLimit: number;
+  perTxLimit: number;
+  spent: number;
 };
 
 export function evaluatePaymentPolicy(
   input: PaymentPolicyInput
 ): PaymentPolicyResult {
+  const agentPolicy = getAgentPolicy(input.agentId);
+  const accounting = getPolicyAccounting(input.agentId);
+
   const numericAmount = Number(input.amount);
+  const dailyLimit = agentPolicy?.dailyLimit ?? 100;
+  const perTxLimit = agentPolicy?.perTxLimit ?? 10;
+  const spent = accounting.spent;
 
   const validAmount =
     Number.isFinite(numericAmount) &&
@@ -28,14 +37,10 @@ export function evaluatePaymentPolicy(
 
   const withinTxLimit =
     validAmount &&
-    numericAmount <= PER_TX_LIMIT;
-
-  const currentSpent = Number.isFinite(input.spent ?? 0)
-    ? Math.max(input.spent ?? 0, 0)
-    : 0;
+    numericAmount <= perTxLimit;
 
   const remainingDailyLimit = Math.max(
-    DAILY_LIMIT - currentSpent,
+    dailyLimit - spent,
     0
   );
 
@@ -56,5 +61,8 @@ export function evaluatePaymentPolicy(
       withinTxLimit &&
       withinDailyLimit &&
       approvedDestination,
+    dailyLimit,
+    perTxLimit,
+    spent,
   };
 }
