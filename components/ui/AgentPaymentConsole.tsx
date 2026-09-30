@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useChainId, useSwitchChain } from "wagmi";
 import {
   Bot,
@@ -30,13 +30,6 @@ import {
   bnbApxsPublicClient,
 } from "@/lib/web3/apxs";
 import {
-  evaluatePaymentPolicy,
-} from "@/lib/policy/engine";
-import {
-  getPolicyAccounting,
-  recordPolicySpend,
-} from "@/lib/policy/accounting";
-import {
   executeApxsPayment,
 } from "@/lib/payment/engine";
 
@@ -46,7 +39,7 @@ declare global {
   }
 }
 
-export function AgentPaymentConsole() {
+export function AgentPaymentConsole({ agentId }: { agentId: string }) {
   const chainId = useChainId();
   const { switchChainAsync } = useSwitchChain();
 
@@ -74,20 +67,80 @@ export function AgentPaymentConsole() {
   const [decimals, setDecimals] = useState<number | null>(null);
 
   const [error, setError] = useState("");
+  const [agentPolicy, setAgentPolicy] = useState<{
+    dailyLimit: number;
+    perTxLimit: number;
+  } | null>(null);
+  const [spentToday, setSpentToday] = useState(0);
+  const [policyLoading, setPolicyLoading] = useState(true);
 
-  const accounting = getPolicyAccounting("Agent-001");
-  const spentToday = accounting.spent;
-  const remainingDailyLimit = Math.max(100 - spentToday, 0);
+  useEffect(() => {
+    let cancelled = false;
 
-  const policy = useMemo(
-    () =>
-      evaluatePaymentPolicy({
-        amount,
-        destination,
-        spent: spentToday,
-      }),
-    [amount, destination, spentToday]
-  );
+    async function loadPolicy() {
+      setPolicyLoading(true);
+
+      try {
+        const response = await fetch(
+          `/api/developers/agents/${encodeURIComponent(agentId)}/policy`,
+          { cache: "no-store" }
+        );
+
+        if (!response.ok) {
+          throw new Error("Unable to load agent policy.");
+        }
+
+        const data = await response.json();
+
+        if (!cancelled && data?.policy) {
+          setAgentPolicy({
+            dailyLimit: data.policy.dailyLimit,
+            perTxLimit: data.policy.perTxLimit,
+          });
+          setSpentToday(data?.accounting?.spent ?? 0);
+        }
+      } catch {
+        if (!cancelled) {
+          setAgentPolicy(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setPolicyLoading(false);
+        }
+      }
+    }
+
+    loadPolicy();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [agentId]);
+
+  const dailyLimit = agentPolicy?.dailyLimit ?? 100;
+  const perTxLimit = agentPolicy?.perTxLimit ?? 10;
+  const remainingDailyLimit = Math.max(dailyLimit - spentToday, 0);
+
+  const validAmount =
+    Number.isFinite(Number(amount)) && Number(amount) > 0;
+  const withinTxLimit =
+    validAmount && Number(amount) <= perTxLimit;
+  const withinDailyLimit =
+    validAmount && Number(amount) <= remainingDailyLimit;
+  const approvedDestination = isAddress(destination.trim());
+  const policyAllowed =
+    validAmount &&
+    withinTxLimit &&
+    withinDailyLimit &&
+    approvedDestination;
+
+  const policy = {
+    validAmount,
+    withinTxLimit,
+    withinDailyLimit,
+    approvedDestination,
+    allowed: policyAllowed,
+  };
 
   function checkPolicy() {
     setError("");
@@ -123,6 +176,11 @@ export function AgentPaymentConsole() {
       setTransactionHash("");
       setReceiptStatus(null);
       setReceiptBlockNumber("");
+
+      if (policyLoading || !agentPolicy) {
+        setError("Agent policy is still loading.");
+        return;
+      }
 
       if (!policy.allowed) {
         setError("Payment is blocked by policy.");
@@ -213,6 +271,29 @@ export function AgentPaymentConsole() {
       setWalletAddress(account);
 
       /*
+       * Bind the connected public wallet to the development agent.
+       * The server-side proxy keeps the API key off the client.
+       */
+      const walletBindingResponse = await fetch(
+        `/api/developers/agents/${encodeURIComponent(agentId)}/wallet`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            walletAddress: account,
+            chainId: currentChainId,
+          }),
+        }
+      );
+
+      if (!walletBindingResponse.ok) {
+        setError("Unable to bind the connected wallet to this agent.");
+        return;
+      }
+
+      /*
        * Read token decimals and current APXS balance.
        */
       const [tokenDecimals, rawBalance] =
@@ -271,7 +352,7 @@ export function AgentPaymentConsole() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          agentId: "Agent-001",
+          agentId,
           wallet: account,
           token: "APXS",
           amount,
@@ -362,9 +443,6 @@ const {
           );
         }
 
-        if (syncData?.record?.status === "confirmed") {
-          recordPolicySpend("Agent-001", Number(amount));
-        }
       }
 
       setExecuted(true);
@@ -455,7 +533,7 @@ const {
                 </div>
 
                 <div className="mt-1 font-mono text-lg">
-                  100 APXS
+                  {dailyLimit} APXS
                 </div>
               </div>
 
@@ -491,7 +569,7 @@ const {
                 </div>
 
                 <div className="mt-1 font-mono text-lg">
-                  10 APXS
+                  {perTxLimit} APXS
                 </div>
               </div>
             </div>
