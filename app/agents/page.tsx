@@ -30,7 +30,7 @@ export default function AgentsPage() {
         <AgentEnvelopeArchitecture />
 
         {/* APXS Agent Payment Console */}
-        <AgentPaymentConsole />
+        <AgentPaymentConsole agentId="agent_3495bf7f-2074-4c6f-b347-33c650a0005f" />
 
         {/* Technical Core Specifications */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
