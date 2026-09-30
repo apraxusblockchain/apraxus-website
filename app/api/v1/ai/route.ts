@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateApiKey } from "@/lib/api/auth";
 import { apiError } from "@/lib/api/errors";
-import { getOpenAIClient } from "@/lib/openai/client";
+import { generateAI } from "@/lib/ai";
+import type { AIProviderName } from "@/lib/ai/types";
 
 export async function POST(request: NextRequest) {
   const auth = validateApiKey(request);
@@ -24,16 +25,22 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const provider =
+    body.provider === "anthropic" || body.provider === "google"
+      ? body.provider
+      : "openai";
+
   try {
-    const openai = getOpenAIClient();
-    const response = await openai.responses.create({
-      model: "gpt-5.6",
-      input: body.prompt.trim(),
+    const result = await generateAI(provider as AIProviderName, {
+      prompt: body.prompt.trim(),
+      model: typeof body.model === "string" ? body.model : undefined,
     });
 
     return NextResponse.json({
       success: true,
-      response: response.output_text,
+      provider: result.provider,
+      model: result.model,
+      response: result.text,
     });
   } catch {
     return apiError(
