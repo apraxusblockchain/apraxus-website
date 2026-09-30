@@ -27,3 +27,5 @@ export {
   resolveAgentRuntime,
   type AgentRuntimeInput,
 } from "@/lib/agents/runtime/run";
+
+export { executeAgentTool } from "@/lib/agents/tools/execute";
