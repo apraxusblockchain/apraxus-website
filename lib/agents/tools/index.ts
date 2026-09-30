@@ -14,3 +14,6 @@ export function getAgentTool(name: AgentToolName): AgentTool {
 export function listAgentTools(): AgentToolName[] {
   return Object.keys(tools) as AgentToolName[];
 }
+
+export { agentToolSchemas } from "@/lib/agents/tools/schemas";
+export type { AgentToolSchema } from "@/lib/agents/tools/schema";
