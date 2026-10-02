@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { parseUnits } from "viem";
 import { validateApiKey } from "@/lib/api/auth";
 import { createRequestId } from "@/lib/api/request-id";
 import { apiError } from "@/lib/api/errors";
@@ -85,13 +86,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (
-      typeof amount !== "string" ||
-      !/^\d+(\.\d+)?$/.test(amount) ||
-      Number(amount) <= 0
-    ) {
+    if (typeof amount !== "string" || !/^\d+(\.\d{1,8})?$/.test(amount)) {
       return apiError(
         "amount must be a positive decimal string",
+        400,
+        "INVALID_AMOUNT"
+      );
+    }
+
+    try {
+      if (parseUnits(amount, 8) <= 0n) {
+        return apiError(
+          "amount must be greater than zero",
+          400,
+          "INVALID_AMOUNT"
+        );
+      }
+    } catch {
+      return apiError(
+        "amount exceeds APXS precision of 8 decimals",
         400,
         "INVALID_AMOUNT"
       );
