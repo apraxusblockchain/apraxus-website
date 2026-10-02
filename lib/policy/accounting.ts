@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { agentPolicyAccounting } from "@/lib/db/schema";
@@ -78,12 +78,12 @@ export function recordPolicySpend(
     return getState(agentId);
   }
 
-  const current = getState(agentId);
+  getState(agentId);
   const updatedAt = new Date().toISOString();
 
   db.update(agentPolicyAccounting)
     .set({
-      spent: current.spent + amount,
+      spent: sql`${agentPolicyAccounting.spent} + ${amount}`,
       updatedAt,
     })
     .where(eq(agentPolicyAccounting.agentId, agentId))
