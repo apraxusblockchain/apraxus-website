@@ -71,10 +71,15 @@ export async function verifyExecutionTransaction(input: {
     return null;
   }
 
-  const decoded = decodeFunctionData({
-    abi: TRANSFER_ABI,
-    data: transaction.input,
-  });
+  let decoded;
+  try {
+    decoded = decodeFunctionData({
+      abi: TRANSFER_ABI,
+      data: transaction.input,
+    });
+  } catch {
+    return null;
+  }
 
   if (decoded.functionName !== "transfer") {
     return null;
