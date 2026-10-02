@@ -74,9 +74,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (typeof token !== "string" || !token.trim()) {
+    if (
+      typeof token !== "string" ||
+      token.trim().toUpperCase() !== "APXS"
+    ) {
       return apiError(
-        "token must be a non-empty string",
+        "token must be APXS",
         400,
         "INVALID_TOKEN"
       );
