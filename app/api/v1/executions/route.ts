@@ -12,6 +12,7 @@ import { APXS_CHAINS } from "@/lib/web3/chains/apxs";
 import { getAgent } from "@/lib/agents/registry";
 import { getAgentWallet } from "@/lib/agents/wallets";
 import { evaluatePaymentPolicy } from "@/lib/policy/engine";
+import { getApraxusAsset } from "@/lib/web3/assets/registry";
 
 export async function POST(request: NextRequest) {
   const auth = validateApiKey(request);
@@ -176,6 +177,17 @@ export async function POST(request: NextRequest) {
 
     const requestedChainId =
       chainId === undefined ? 421614 : Number(chainId);
+
+    const assetId = `${token.trim().toLowerCase()}:${requestedChainId}`;
+    const asset = getApraxusAsset(assetId);
+
+    if (!asset || !asset.enabled) {
+      return apiError(
+        "Asset is not supported on the requested chain",
+        400,
+        "UNSUPPORTED_ASSET"
+      );
+    }
 
     const chainConfig =
       requestedChainId === 421614
