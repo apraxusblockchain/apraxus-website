@@ -61,6 +61,11 @@ export type ExecutionResponse = {
   };
 };
 
+export type AiResponse = {
+  success: true;
+  response: string;
+};
+
 export type SandboxResponse = {
   success: true;
   sandbox: true;
@@ -105,7 +110,12 @@ export class ApraxusClient {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data?.error ?? "Apraxus API request failed");
+      const message =
+        typeof data?.error === "string"
+          ? data.error
+          : data?.error?.message ?? "Apraxus API request failed";
+
+      throw new Error(message);
     }
 
     return data;
@@ -148,6 +158,17 @@ export class ApraxusClient {
     return this.request<ExecutionResponse>("/executions", {
       method: "POST",
       body: JSON.stringify(execution),
+    });
+  }
+
+  async ai(prompt: string): Promise<AiResponse> {
+    if (typeof prompt !== "string" || !prompt.trim()) {
+      throw new Error("Prompt is required");
+    }
+
+    return this.request<AiResponse>("/ai", {
+      method: "POST",
+      body: JSON.stringify({ prompt: prompt.trim() }),
     });
   }
 

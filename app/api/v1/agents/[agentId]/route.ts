@@ -17,8 +17,16 @@ export async function GET(
     );
   }
 
+  if (!auth.developerId) {
+    return apiError(
+      "Developer identity is required",
+      403,
+      "DEVELOPER_IDENTITY_REQUIRED"
+    );
+  }
+
   const { agentId } = await params;
-  const agent = getAgent(agentId);
+  const agent = getAgent(agentId, auth.developerId);
 
   if (!agent) {
     return apiError(

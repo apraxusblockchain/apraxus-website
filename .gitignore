@@ -45,3 +45,8 @@ lib/web3/*.bak
 # Hardhat generated files
 artifacts/
 cache/
+
+# Local SQLite database
+/data/*.db
+/data/*.db-shm
+/data/*.db-wal

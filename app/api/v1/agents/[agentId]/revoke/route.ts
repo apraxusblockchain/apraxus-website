@@ -17,8 +17,16 @@ export async function POST(
     );
   }
 
+  if (!auth.developerId) {
+    return apiError(
+      "Developer identity is required",
+      403,
+      "DEVELOPER_IDENTITY_REQUIRED"
+    );
+  }
+
   const { agentId } = await params;
-  const agent = revokeAgent(agentId);
+  const agent = revokeAgent(agentId, auth.developerId);
 
   if (!agent) {
     return apiError(

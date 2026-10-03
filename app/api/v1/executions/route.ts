@@ -8,11 +8,10 @@ import {
   createExecutionRecord,
   getExecutionRecordByIdempotencyKey,
 } from "@/lib/execution/repository";
-import { APXS_CHAINS } from "@/lib/web3/chains/apxs";
 import { getAgent } from "@/lib/agents/registry";
 import { getAgentWallet } from "@/lib/agents/wallets";
 import { evaluatePaymentPolicy } from "@/lib/policy/engine";
-import { getApraxusAsset } from "@/lib/web3/assets/registry";
+import { getApraxusAssetBySymbol } from "@/lib/web3/assets/registry";
 
 export async function POST(request: NextRequest) {
   const auth = validateApiKey(request);
@@ -76,27 +75,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (
-      typeof token !== "string" ||
-      token.trim().toUpperCase() !== "APXS"
-    ) {
+    if (typeof token !== "string" || !token.trim()) {
       return apiError(
-        "token must be APXS",
+        "token must be a non-empty string",
         400,
         "INVALID_TOKEN"
       );
     }
 
-    if (typeof amount !== "string" || !/^\d+(\.\d{1,8})?$/.test(amount)) {
+    const requestedChainId =
+      chainId === undefined ? 421614 : Number(chainId);
+
+    const asset = getApraxusAssetBySymbol(
+      token,
+      requestedChainId,
+    );
+
+    if (!asset || !asset.enabled) {
       return apiError(
-        "amount must be a positive decimal string",
+        "Asset is not supported on the requested chain",
+        400,
+        "UNSUPPORTED_ASSET"
+      );
+    }
+
+    const amountPattern = new RegExp(
+      `^\\d+(\\.\\d{1,${asset.decimals}})?$`
+    );
+
+    if (typeof amount !== "string" || !amountPattern.test(amount)) {
+      return apiError(
+        `amount must be a positive decimal string with at most ${asset.decimals} decimals`,
         400,
         "INVALID_AMOUNT"
       );
     }
 
     try {
-      if (parseUnits(amount, 8) <= 0n) {
+      if (parseUnits(amount, asset.decimals) <= 0n) {
         return apiError(
           "amount must be greater than zero",
           400,
@@ -105,7 +121,7 @@ export async function POST(request: NextRequest) {
       }
     } catch {
       return apiError(
-        "amount exceeds APXS precision of 8 decimals",
+        "amount exceeds the supported asset precision",
         400,
         "INVALID_AMOUNT"
       );
@@ -175,30 +191,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const requestedChainId =
-      chainId === undefined ? 421614 : Number(chainId);
-
-    const assetId = `${token.trim().toLowerCase()}:${requestedChainId}`;
-    const asset = getApraxusAsset(assetId);
-
-    if (!asset || !asset.enabled) {
+    if (asset.chainId !== requestedChainId) {
       return apiError(
         "Asset is not supported on the requested chain",
-        400,
-        "UNSUPPORTED_ASSET"
-      );
-    }
-
-    const chainConfig =
-      requestedChainId === 421614
-        ? APXS_CHAINS.arbitrumSepolia
-        : requestedChainId === 97
-          ? APXS_CHAINS.bnbTestnet
-          : null;
-
-    if (!chainConfig) {
-      return apiError(
-        "chainId must be 421614 (Arbitrum Sepolia) or 97 (BNB Testnet)",
         400,
         "INVALID_CHAIN"
       );
@@ -226,7 +221,9 @@ export async function POST(request: NextRequest) {
       const sameRequest =
         existingExecution.walletAddress.toLowerCase() === wallet.trim().toLowerCase() &&
         existingExecution.chainId === requestedChainId &&
-        existingExecution.tokenAddress.toLowerCase() === chainConfig.address.toLowerCase() &&
+        existingExecution.assetId === asset.id &&
+        existingExecution.assetKind === asset.kind &&
+        existingExecution.tokenAddress?.toLowerCase() === asset.address?.toLowerCase() &&
         existingExecution.amount === amount &&
         existingExecution.recipient.toLowerCase() === recipient.trim().toLowerCase();
 
@@ -265,7 +262,9 @@ export async function POST(request: NextRequest) {
       idempotencyKey,
       walletAddress: wallet.trim(),
       chainId: requestedChainId,
-      tokenAddress: chainConfig.address,
+      assetId: asset.id,
+      assetKind: asset.kind,
+      tokenAddress: asset.address,
       amount,
       recipient: recipient.trim(),
       status: "pending",

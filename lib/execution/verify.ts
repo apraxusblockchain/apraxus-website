@@ -5,8 +5,6 @@ import {
   type PublicClient,
 } from "viem";
 
-import { APXS_ABI, APXS_CHAINS } from "@/lib/web3/apxs";
-
 export type VerifiedExecution = {
   transactionHash: string;
   status: "success" | "reverted";
@@ -31,25 +29,12 @@ export async function verifyExecutionTransaction(input: {
   chainId: number;
   transactionHash: `0x${string}`;
   expectedWallet: string;
-  expectedTokenAddress: string;
+  expectedAssetKind: "token" | "native";
+  expectedTokenAddress?: string;
   expectedRecipient: string;
   expectedAmount: bigint;
 }): Promise<VerifiedExecution | null> {
-  const chainTokenAddress =
-    input.chainId === 421614
-      ? APXS_CHAINS.arbitrumSepolia.address
-      : input.chainId === 97
-        ? APXS_CHAINS.bnbTestnet.address
-        : null;
-
-  if (!chainTokenAddress) {
-    return null;
-  }
-
-  if (
-    getAddress(input.expectedTokenAddress) !==
-    getAddress(chainTokenAddress)
-  ) {
+  if (input.publicClient.chain?.id !== input.chainId) {
     return null;
   }
 
@@ -64,38 +49,55 @@ export async function verifyExecutionTransaction(input: {
     return null;
   }
 
-  if (
-    getAddress(transaction.to ?? "0x0000000000000000000000000000000000000000") !==
-    getAddress(chainTokenAddress)
-  ) {
-    return null;
-  }
+  if (input.expectedAssetKind === "native") {
+    if (
+      getAddress(transaction.to ?? "0x0000000000000000000000000000000000000000") !==
+      getAddress(input.expectedRecipient)
+    ) {
+      return null;
+    }
 
-  let decoded;
-  try {
-    decoded = decodeFunctionData({
-      abi: TRANSFER_ABI,
-      data: transaction.input,
-    });
-  } catch {
-    return null;
-  }
+    if (transaction.value !== input.expectedAmount) {
+      return null;
+    }
+  } else {
+    if (!input.expectedTokenAddress) {
+      return null;
+    }
 
-  if (decoded.functionName !== "transfer") {
-    return null;
-  }
+    if (
+      getAddress(transaction.to ?? "0x0000000000000000000000000000000000000000") !==
+      getAddress(input.expectedTokenAddress)
+    ) {
+      return null;
+    }
 
-  const [recipient, amount] = decoded.args;
+    let decoded;
+    try {
+      decoded = decodeFunctionData({
+        abi: TRANSFER_ABI,
+        data: transaction.input,
+      });
+    } catch {
+      return null;
+    }
 
-  if (
-    getAddress(recipient) !==
-    getAddress(input.expectedRecipient)
-  ) {
-    return null;
-  }
+    if (decoded.functionName !== "transfer") {
+      return null;
+    }
 
-  if (amount !== input.expectedAmount) {
-    return null;
+    const [recipient, amount] = decoded.args;
+
+    if (
+      getAddress(recipient) !==
+      getAddress(input.expectedRecipient)
+    ) {
+      return null;
+    }
+
+    if (amount !== input.expectedAmount) {
+      return null;
+    }
   }
 
   const receipt = await input.publicClient.getTransactionReceipt({

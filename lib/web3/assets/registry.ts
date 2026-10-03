@@ -50,3 +50,17 @@ export const APRAXUS_FEE_CONFIG = {
 export function getApraxusAsset(assetId: string): ApraxusAsset | undefined {
   return APRAXUS_ASSETS[assetId];
 }
+
+export function getApraxusAssetBySymbol(
+  symbol: string,
+  chainId: number,
+): ApraxusAsset | undefined {
+  const normalizedSymbol = symbol.trim().toLowerCase();
+
+  return Object.values(APRAXUS_ASSETS).find(
+    (asset) =>
+      asset.enabled &&
+      asset.chainId === chainId &&
+      asset.symbol.toLowerCase() === normalizedSymbol,
+  );
+}

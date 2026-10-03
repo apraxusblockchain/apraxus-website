@@ -1,22 +1,78 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+const DEVELOPER_ID_KEY = "apraxus_developer_id";
 
 export default function DeveloperKeysPage() {
+  const [developerId, setDeveloperId] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function initializeDeveloper() {
+      const existingId = window.localStorage.getItem(DEVELOPER_ID_KEY);
+
+      if (existingId) {
+        setDeveloperId(existingId);
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch("/api/v1/developers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Apraxus Development",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.developer?.developerId) {
+        setError(data.error ?? "Failed to create developer account");
+        setLoading(false);
+        return;
+      }
+
+      const id = data.developer.developerId;
+      window.localStorage.setItem(DEVELOPER_ID_KEY, id);
+      setDeveloperId(id);
+      setLoading(false);
+    }
+
+    initializeDeveloper().catch(() => {
+      setError("Failed to initialize developer account");
+      setLoading(false);
+    });
+  }, []);
 
   async function createKey() {
+    if (!developerId) return;
+
+    setError("");
+
     const response = await fetch("/api/v1/keys", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ developerId }),
     });
 
     const data = await response.json();
 
-    if (data.apiKey) {
-      setApiKey(data.apiKey);
-      setCopied(false);
+    if (!response.ok || !data.key?.apiKey) {
+      setError(data.error ?? "Failed to create API key");
+      return;
     }
+
+    setApiKey(data.key.apiKey);
+    setCopied(false);
   }
 
   async function copyKey() {
@@ -43,10 +99,17 @@ export default function DeveloperKeysPage() {
         <section className="mt-10 rounded-2xl border border-white/10 p-6">
           <button
             onClick={createKey}
-            className="rounded-xl border border-white/15 px-5 py-3 text-sm transition hover:bg-white/5"
+            disabled={loading || !developerId}
+            className="rounded-xl border border-white/15 px-5 py-3 text-sm transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Create API Key
+            {loading ? "Initializing..." : "Create API Key"}
           </button>
+
+          {error && (
+            <p className="mt-4 text-sm text-red-400">
+              {error}
+            </p>
+          )}
 
           {apiKey && (
             <div className="mt-6">

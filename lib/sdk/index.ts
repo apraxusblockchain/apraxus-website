@@ -6,6 +6,7 @@ export type {
   QuoteResponse,
   ExecutionResponse,
   SandboxResponse,
+  AiResponse,
 } from "./apraxus";
 
 export {

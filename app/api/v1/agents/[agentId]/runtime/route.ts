@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateApiKey } from "@/lib/api/auth";
 import { apiError } from "@/lib/api/errors";
-import { getAgentRuntimeState } from "@/lib/agents/runtime";
-import { resolveAgentRuntime } from "@/lib/agents/runtime";
+import {
+  getAgentRuntimeState,
+  resolveAgentRuntime,
+} from "@/lib/agents/runtime";
 
 export async function GET(
   request: NextRequest,

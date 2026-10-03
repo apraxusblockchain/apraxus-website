@@ -3,6 +3,7 @@ import { validateApiKey } from "@/lib/api/auth";
 import { createRequestId } from "@/lib/api/request-id";
 import { apiError } from "@/lib/api/errors";
 import { recordApiRequest } from "@/lib/api/metrics";
+import { BILLING_CONFIG, calculateUsageFee } from "@/lib/billing";
 
 export async function POST(request: NextRequest) {
   const auth = validateApiKey(request);
@@ -78,6 +79,13 @@ export async function POST(request: NextRequest) {
       amount,
       recipient: recipient.trim(),
       agentId: agentId.trim(),
+      billing: {
+        fee: calculateUsageFee({
+          amount: Number(amount),
+          config: BILLING_CONFIG.usageFee,
+        }),
+        status: "not_charged",
+      },
       execution: {
         mode: "intent_only",
         transactionSubmitted: false,

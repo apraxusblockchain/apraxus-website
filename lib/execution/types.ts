@@ -11,7 +11,9 @@ export type ExecutionRecord = {
   idempotencyKey?: string;
   walletAddress: string;
   chainId: number;
-  tokenAddress: string;
+  assetId: string;
+  assetKind: "token" | "native";
+  tokenAddress?: string;
   amount: string;
   recipient: string;
   transactionHash?: string;
