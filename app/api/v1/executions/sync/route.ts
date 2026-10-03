@@ -9,6 +9,8 @@ import {
   createBillingRecord,
 } from "@/lib/billing";
 import { getExecutionRecord } from "@/lib/execution/repository";
+import { createPlatformFeeRecord } from "@/lib/fees/ledger";
+import { APRAXUS_FEE_CONFIG } from "@/lib/web3/assets/registry";
 import { getAgent } from "@/lib/agents/registry";
 import { recordPolicySpend } from "@/lib/policy/accounting";
 import {
@@ -115,9 +117,11 @@ export async function POST(request: NextRequest) {
     }
 
     let expectedAmount: bigint;
+    let executionDecimals: number;
 
     if (asset.kind === "native") {
-      expectedAmount = parseUnits(record.amount, asset.decimals);
+      executionDecimals = asset.decimals;
+      expectedAmount = parseUnits(record.amount, executionDecimals);
     } else {
       if (!asset.address) {
         return apiError(
@@ -141,7 +145,8 @@ export async function POST(request: NextRequest) {
         functionName: "decimals",
       });
 
-      expectedAmount = parseUnits(record.amount, tokenDecimals);
+      executionDecimals = tokenDecimals;
+      expectedAmount = parseUnits(record.amount, executionDecimals);
     }
 
     const verified = await verifyExecutionTransaction({
@@ -198,6 +203,20 @@ export async function POST(request: NextRequest) {
     ) {
       recordPolicySpend(record.agentId, Number(record.amount));
     }
+
+    const platformFee =
+      updated.status === "confirmed"
+        ? createPlatformFeeRecord({
+            executionId: record.requestId,
+            agentId: record.agentId,
+            chainId: record.chainId,
+            assetId: record.assetId,
+            assetKind: record.assetKind,
+            tokenAddress: record.tokenAddress,
+            amount: parseUnits(record.amount, executionDecimals),
+            basisPoints: APRAXUS_FEE_CONFIG.basisPoints,
+          })
+        : null;
 
     const billingFee = calculateUsageFee({
       amount: Number(record.amount),

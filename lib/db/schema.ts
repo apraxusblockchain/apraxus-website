@@ -120,6 +120,32 @@ export const billingRecords = sqliteTable(
   })
 );
 
+export const platformFeeRecords = sqliteTable(
+  "platform_fee_records",
+  {
+    feeId: text("fee_id").primaryKey(),
+    executionId: text("execution_id")
+      .notNull()
+      .references(() => executions.requestId),
+    agentId: text("agent_id")
+      .notNull()
+      .references(() => agents.agentId),
+    chainId: integer("chain_id").notNull(),
+    assetId: text("asset_id").notNull(),
+    assetKind: text("asset_kind").notNull(),
+    tokenAddress: text("token_address"),
+    feeAmount: text("fee_amount").notNull(),
+    basisPoints: integer("basis_points").notNull(),
+    status: text("status").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => ({
+    executionUnique: uniqueIndex("platform_fee_records_execution_unique").on(
+      table.executionId,
+    ),
+  }),
+);
+
 export const executions = sqliteTable("executions", {
   requestId: text("request_id").primaryKey(),
   agentId: text("agent_id")
