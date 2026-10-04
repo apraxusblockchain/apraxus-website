@@ -163,3 +163,14 @@ export function listExecutionRecords(): ExecutionRecord[] {
     .all()
     .map(toExecutionRecord);
 }
+
+export function listExecutionRecordsByAgent(
+  agentId: string,
+): ExecutionRecord[] {
+  return db
+    .select()
+    .from(executions)
+    .where(eq(executions.agentId, agentId))
+    .all()
+    .map(toExecutionRecord);
+}

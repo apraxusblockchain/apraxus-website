@@ -1,18 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createDeveloperAccount } from "@/lib/developers/accounts";
+import { getDeveloperAccount } from "@/lib/developers/accounts";
 import { DEVELOPER_SESSION_COOKIE } from "@/lib/developers/session";
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
 
-  if (!body || typeof body.name !== "string" || !body.name.trim()) {
+  if (!body || typeof body.developerId !== "string" || !body.developerId.trim()) {
     return NextResponse.json(
-      { success: false, error: "Developer name is required" },
+      { success: false, error: "Developer ID is required" },
       { status: 400 },
     );
   }
 
-  const developer = createDeveloperAccount(body.name.trim());
+  const developer = getDeveloperAccount(body.developerId.trim());
+
+  if (!developer) {
+    return NextResponse.json(
+      { success: false, error: "Developer account not found" },
+      { status: 404 },
+    );
+  }
 
   const response = NextResponse.json({
     success: true,

@@ -350,6 +350,7 @@ export function AgentPaymentConsole({ agentId }: { agentId: string }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Idempotency-Key": crypto.randomUUID(),
         },
         body: JSON.stringify({
           agentId,

@@ -1,28 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDeveloperFromRequest } from "@/lib/developers/session";
 
-export async function POST(request: NextRequest) {
+async function proxyAgents(request: NextRequest) {
   try {
     const developer = getDeveloperFromRequest(request);
 
     if (!developer) {
       return NextResponse.json(
-        { success: false, error: "Developer session required" },
+        {
+          success: false,
+          error: "Developer session required",
+        },
         { status: 401 },
       );
     }
 
-    const body = await request.json();
     const baseUrl = request.nextUrl.origin;
 
-    const response = await fetch(`${baseUrl}/api/v1/executions/sync`, {
-      method: "POST",
+    const response = await fetch(`${baseUrl}/api/v1/agents`, {
+      method: request.method,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.APRAXUS_API_KEY ?? ""}`,
         "x-apraxus-developer-id": developer.developerId,
       },
-      body: JSON.stringify(body),
+      ...(request.method === "POST"
+        ? { body: await request.text() }
+        : {}),
       cache: "no-store",
     });
 
@@ -35,9 +39,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Unable to synchronize execution.",
+        error: "Unable to access agents.",
       },
       { status: 500 },
     );
   }
+}
+
+export async function GET(request: NextRequest) {
+  return proxyAgents(request);
+}
+
+export async function POST(request: NextRequest) {
+  return proxyAgents(request);
 }

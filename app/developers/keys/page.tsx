@@ -16,6 +16,25 @@ export default function DeveloperKeysPage() {
       const existingId = window.localStorage.getItem(DEVELOPER_ID_KEY);
 
       if (existingId) {
+        const sessionResponse = await fetch("/api/v1/developers/session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            developerId: existingId,
+          }),
+        });
+
+        const sessionData = await sessionResponse.json();
+
+        if (!sessionResponse.ok || !sessionData.developer?.developerId) {
+          window.localStorage.removeItem(DEVELOPER_ID_KEY);
+          setError(sessionData.error ?? "Failed to restore developer session");
+          setLoading(false);
+          return;
+        }
+
         setDeveloperId(existingId);
         setLoading(false);
         return;

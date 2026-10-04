@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getDeveloperFromRequest } from "@/lib/developers/session";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const developer = getDeveloperFromRequest(request);
 
+    if (!developer) {
+      return NextResponse.json(
+        { success: false, error: "Developer session required" },
+        { status: 401 },
+      );
+    }
+
+    const body = await request.json();
     const baseUrl = request.nextUrl.origin;
 
     const response = await fetch(`${baseUrl}/api/v1/executions`, {
@@ -11,6 +20,7 @@ export async function POST(request: NextRequest) {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${process.env.APRAXUS_API_KEY ?? ""}`,
+        "x-apraxus-developer-id": developer.developerId,
         "Idempotency-Key": request.headers.get("Idempotency-Key") ?? "",
       },
       body: JSON.stringify(body),
@@ -27,7 +37,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: "Unable to create execution intent.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

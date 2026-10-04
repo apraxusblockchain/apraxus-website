@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getApiKeyByHash } from "@/lib/api/keys";
+import { getDeveloperAccount } from "@/lib/developers/accounts";
 
 type ApiAuthResult =
   | {
@@ -44,6 +45,27 @@ export function validateApiKey(request: NextRequest): ApiAuthResult {
   const configuredKey = process.env.APRAXUS_API_KEY;
 
   if (configuredKey && providedKey === configuredKey) {
+    const internalDeveloperId = request.headers.get(
+      "x-apraxus-developer-id",
+    );
+
+    if (internalDeveloperId) {
+      const developer = getDeveloperAccount(internalDeveloperId);
+
+      if (!developer) {
+        return {
+          valid: false,
+          error: "Invalid developer identity",
+        };
+      }
+
+      return {
+        valid: true,
+        developerId: developer.developerId,
+        keyId: null,
+      };
+    }
+
     return {
       valid: true,
       developerId: null,
