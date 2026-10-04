@@ -161,6 +161,7 @@ export async function POST(request: NextRequest) {
 
     const policy = evaluatePaymentPolicy({
       agentId: agentId.trim(),
+      assetId: asset.id,
       amount,
       destination: recipient.trim(),
     });

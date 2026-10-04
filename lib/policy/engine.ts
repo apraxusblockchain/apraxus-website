@@ -5,6 +5,7 @@ import { getPolicyAccounting } from "@/lib/policy/accounting";
 
 export type PaymentPolicyInput = {
   agentId: string;
+  assetId: string;
   amount: string;
   destination: string;
 };
@@ -23,12 +24,15 @@ export type PaymentPolicyResult = {
 export function evaluatePaymentPolicy(
   input: PaymentPolicyInput
 ): PaymentPolicyResult {
-  const agentPolicy = getAgentPolicy(input.agentId);
-  const accounting = getPolicyAccounting(input.agentId);
+  const isApxsAsset = input.assetId.startsWith("apxs:");
+  const agentPolicy = isApxsAsset ? getAgentPolicy(input.agentId) : null;
+  const accounting = isApxsAsset
+    ? getPolicyAccounting(input.agentId)
+    : { spent: 0, windowStartedAt: new Date().toISOString() };
 
   const numericAmount = Number(input.amount);
-  const dailyLimit = agentPolicy?.dailyLimit ?? 100;
-  const perTxLimit = agentPolicy?.perTxLimit ?? 10;
+  const dailyLimit = agentPolicy?.dailyLimit ?? Number.POSITIVE_INFINITY;
+  const perTxLimit = agentPolicy?.perTxLimit ?? Number.POSITIVE_INFINITY;
   const spent = accounting.spent;
 
   const validAmount =

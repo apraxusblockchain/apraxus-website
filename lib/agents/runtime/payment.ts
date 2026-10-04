@@ -15,6 +15,7 @@ export type AgentPaymentIntent = {
 export function createAgentPaymentIntent(
   context: AgentRuntimeContext,
   input: {
+    assetId: string;
     amount: string;
     recipient: string;
   },
@@ -27,6 +28,7 @@ export function createAgentPaymentIntent(
 
   const policy = evaluatePaymentPolicy({
     agentId: context.agent.agentId,
+    assetId: input.assetId,
     amount: input.amount,
     destination: input.recipient,
   });

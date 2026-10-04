@@ -18,6 +18,10 @@ export const agentToolSchemas: AgentToolSchema[] = [
     inputSchema: {
       type: "object",
       properties: {
+        token: {
+          type: "string",
+          description: "Supported asset symbol, such as APXS, USDC, USDT, ETH, or BNB.",
+        },
         amount: {
           type: "string",
           description: "Payment amount.",
@@ -26,8 +30,12 @@ export const agentToolSchemas: AgentToolSchema[] = [
           type: "string",
           description: "Destination wallet address.",
         },
+        chainId: {
+          type: "number",
+          description: "Target EVM chain ID for the payment.",
+        },
       },
-      required: ["amount", "recipient"],
+      required: ["token", "amount", "recipient", "chainId"],
     },
   },
 ];
