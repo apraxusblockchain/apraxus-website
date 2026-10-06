@@ -2,6 +2,7 @@ import type { AgentRuntimeContext } from "@/lib/agents/runtime";
 import { executeAIToolCalls } from "@/lib/ai/tools";
 import { generateAI } from "@/lib/ai";
 import type {
+  AIConversationMessage,
   AIProviderName,
   AIResponse,
 } from "@/lib/ai/types";
@@ -25,9 +26,9 @@ export async function runAgentAI(
 ): Promise<AgentAIResponse> {
   const maxToolRounds = request.maxToolRounds ?? 5;
 
-  let messages = [
+  let messages: AIConversationMessage[] = [
     {
-      role: "user" as const,
+      role: "user",
       content: request.prompt,
     },
   ];
@@ -53,11 +54,26 @@ export async function runAgentAI(
       break;
     }
 
+    messages = [
+      ...messages,
+      {
+        role: "assistant" as const,
+        content: currentAI.text,
+        toolCalls: currentAI.toolCalls,
+      },
+      {
+        role: "user" as const,
+        content: "",
+        toolResults,
+      },
+    ];
+
     currentAI = await generateAI(request.provider, {
       prompt: request.prompt,
       model: request.model,
       tools: agentToolSchemas,
       toolResults,
+      messages,
       previousResponseId: currentAI.responseId,
     });
   }
