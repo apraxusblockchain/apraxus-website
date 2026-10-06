@@ -1,7 +1,5 @@
-import {
-  createAgentPaymentIntent,
-} from "@/lib/agents/runtime";
-import { getApraxusAssetBySymbol } from "@/lib/web3/assets/registry";
+import { getAgentRuntimeState } from "@/lib/agents/runtime";
+import { createExecutionIntent } from "@/lib/execution/service";
 import type {
   AgentTool,
   AgentToolRequest,
@@ -18,6 +16,7 @@ export const createPaymentIntentTool: AgentTool = {
     const amount = request.input.amount;
     const recipient = request.input.recipient;
     const chainId = request.input.chainId;
+    const idempotencyKey = request.input.idempotencyKey;
 
     if (typeof token !== "string" || !token.trim()) {
       return {
@@ -43,9 +42,7 @@ export const createPaymentIntentTool: AgentTool = {
       };
     }
 
-    const targetChainId = chainId;
-
-    if (typeof targetChainId !== "number" || !Number.isInteger(targetChainId)) {
+    if (typeof chainId !== "number" || !Number.isInteger(chainId)) {
       return {
         success: false,
         tool: "create_payment_intent",
@@ -53,23 +50,21 @@ export const createPaymentIntentTool: AgentTool = {
       };
     }
 
-    const asset = getApraxusAssetBySymbol(token, targetChainId);
-
-    if (!asset) {
+    if (
+      typeof idempotencyKey !== "string" ||
+      !idempotencyKey.trim() ||
+      idempotencyKey.length > 255
+    ) {
       return {
         success: false,
         tool: "create_payment_intent",
-        error: "Asset is not supported on the requested chain",
+        error: "A valid idempotencyKey is required",
       };
     }
 
-    const intent = createAgentPaymentIntent(request.agent, {
-      assetId: asset.id,
-      amount: amount.trim(),
-      recipient: recipient.trim(),
-    });
+    const runtime = getAgentRuntimeState(request.agent);
 
-    if (!intent) {
+    if (!runtime.wallet) {
       return {
         success: false,
         tool: "create_payment_intent",
@@ -77,10 +72,32 @@ export const createPaymentIntentTool: AgentTool = {
       };
     }
 
-    return {
-      success: true,
-      tool: "create_payment_intent",
-      data: intent,
-    };
+    try {
+      const intent = await createExecutionIntent({
+        agentId: request.agent.agent.agentId,
+        developerId: request.agent.agent.developerId,
+        wallet: runtime.wallet.walletAddress,
+        token: token.trim(),
+        amount: amount.trim(),
+        recipient: recipient.trim(),
+        chainId,
+        idempotencyKey: idempotencyKey.trim(),
+      });
+
+      return {
+        success: true,
+        tool: "create_payment_intent",
+        data: intent,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        tool: "create_payment_intent",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to create payment intent",
+      };
+    }
   },
 };

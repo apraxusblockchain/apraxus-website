@@ -70,9 +70,10 @@ export function createApraxusMcpServer() {
         amount: z.string().min(1),
         recipient: z.string().min(1),
         chainId: z.number().int(),
+        idempotencyKey: z.string().min(1).max(255),
       },
     },
-    async ({ agentId, token, amount, recipient, chainId }, extra) => {
+    async ({ agentId, token, amount, recipient, chainId, idempotencyKey }, extra) => {
       const authInfo = extra.authInfo;
 
       if (!authInfo) {
@@ -102,6 +103,7 @@ export function createApraxusMcpServer() {
           amount,
           recipient,
           chainId,
+          idempotencyKey,
         },
       );
 

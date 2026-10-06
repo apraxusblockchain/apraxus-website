@@ -34,8 +34,12 @@ export const agentToolSchemas: AgentToolSchema[] = [
           type: "number",
           description: "Target EVM chain ID for the payment.",
         },
+        idempotencyKey: {
+          type: "string",
+          description: "Unique key used to safely retry the same payment intent without creating a duplicate.",
+        },
       },
-      required: ["token", "amount", "recipient", "chainId"],
+      required: ["token", "amount", "recipient", "chainId", "idempotencyKey"],
     },
   },
 ];
