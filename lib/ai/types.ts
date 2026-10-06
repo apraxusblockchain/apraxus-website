@@ -1,9 +1,17 @@
 import type { AgentToolSchema } from "@/lib/agents/tools/schema";
 
-export type AIProviderName = "openai" | "anthropic" | "google";
+export type AIProviderName = "openai" | "anthropic" | "google" | "grok";
+
+export type AIConversationMessage = {
+  role: "user" | "assistant";
+  content: string;
+  toolCalls?: AIToolCall[];
+  toolResults?: AIToolResult[];
+};
 
 export type AIRequest = {
   prompt: string;
+  messages?: AIConversationMessage[];
   model?: string;
   tools?: AgentToolSchema[];
   toolResults?: AIToolResult[];

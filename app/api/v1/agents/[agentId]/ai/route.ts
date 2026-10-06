@@ -39,7 +39,7 @@ export async function POST(
   }
 
   const provider =
-    body.provider === "anthropic" || body.provider === "google"
+    body.provider === "anthropic" || body.provider === "google" || body.provider === "grok"
       ? body.provider
       : "openai";
 

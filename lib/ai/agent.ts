@@ -25,10 +25,18 @@ export async function runAgentAI(
 ): Promise<AgentAIResponse> {
   const maxToolRounds = request.maxToolRounds ?? 5;
 
+  let messages = [
+    {
+      role: "user" as const,
+      content: request.prompt,
+    },
+  ];
+
   let currentAI = await generateAI(request.provider, {
     prompt: request.prompt,
     model: request.model,
     tools: agentToolSchemas,
+    messages,
   });
 
   let toolResults: Awaited<ReturnType<typeof executeAIToolCalls>> = [];

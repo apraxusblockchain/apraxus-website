@@ -1,6 +1,7 @@
 import type { AIProviderName } from "@/lib/ai/types";
 import { AnthropicProvider } from "@/lib/ai/providers/anthropic";
 import { GoogleProvider } from "@/lib/ai/providers/google";
+import { GrokProvider } from "@/lib/ai/providers/grok";
 import { OpenAIProvider } from "@/lib/ai/providers/openai";
 
 export function getAIProvider(name: AIProviderName) {
@@ -11,5 +12,7 @@ export function getAIProvider(name: AIProviderName) {
       return new AnthropicProvider();
     case "google":
       return new GoogleProvider();
+    case "grok":
+      return new GrokProvider();
   }
 }

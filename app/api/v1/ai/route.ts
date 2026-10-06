@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   }
 
   const provider =
-    body.provider === "anthropic" || body.provider === "google"
+    body.provider === "anthropic" || body.provider === "google" || body.provider === "grok"
       ? body.provider
       : "openai";
 
