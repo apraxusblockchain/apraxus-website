@@ -20,7 +20,7 @@ export const agentToolSchemas: AgentToolSchema[] = [
       properties: {
         token: {
           type: "string",
-          description: "Supported asset symbol, such as APXS, USDC, USDT, ETH, or BNB.",
+          description: "Supported asset symbol registered by Apraxus, such as APXS, ETH, or BNB.",
         },
         amount: {
           type: "string",
