@@ -19,17 +19,49 @@ type ExecutionRecord = {
 export function ExecutionHistory() {
   const [records, setRecords] = useState<ExecutionRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [offset, setOffset] = useState(0);
 
   useEffect(() => {
-    fetch("/api/developers/executions/list")
+    fetch("/api/developers/executions/list?limit=20&offset=0")
       .then((response) => response.json())
       .then((data) => {
         if (data?.success && Array.isArray(data.records)) {
           setRecords(data.records);
+          setHasMore(Boolean(data.hasMore));
+          setOffset(
+            typeof data.nextOffset === "number" ? data.nextOffset : data.records.length,
+          );
         }
       })
       .finally(() => setLoading(false));
   }, []);
+
+  async function loadMore() {
+    if (loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+
+    try {
+      const response = await fetch(
+        `/api/developers/executions/list?limit=20&offset=${offset}`,
+      );
+      const data = await response.json();
+
+      if (data?.success && Array.isArray(data.records)) {
+        setRecords((current) => [...current, ...data.records]);
+        setHasMore(Boolean(data.hasMore));
+        setOffset(
+          typeof data.nextOffset === "number"
+            ? data.nextOffset
+            : offset + data.records.length,
+        );
+      }
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   return (
     <section className="mt-12 rounded-2xl border border-white/10 p-6">
@@ -106,6 +138,17 @@ export function ExecutionHistory() {
             </div>
           ))}
         </div>
+      )}
+
+      {hasMore && (
+        <button
+          type="button"
+          onClick={loadMore}
+          disabled={loadingMore}
+          className="mt-6 rounded-xl border border-white/10 px-4 py-2 text-sm text-white/70 transition hover:border-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {loadingMore ? "Loading..." : "Load More"}
+        </button>
       )}
     </section>
   );

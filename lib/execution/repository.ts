@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { executions } from "@/lib/db/schema";
 import type { ExecutionRecord, ExecutionStatus } from "@/lib/execution/types";
@@ -156,10 +156,16 @@ export function getExecutionRecordByIdempotencyKey(
   return row ? toExecutionRecord(row) : null;
 }
 
-export function listExecutionRecords(): ExecutionRecord[] {
+export function listExecutionRecords(
+  limit = 20,
+  offset = 0,
+): ExecutionRecord[] {
   return db
     .select()
     .from(executions)
+    .orderBy(desc(executions.createdAt))
+    .limit(limit)
+    .offset(offset)
     .all()
     .map(toExecutionRecord);
 }
