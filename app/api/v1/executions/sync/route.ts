@@ -3,21 +3,11 @@ import { parseUnits } from "viem";
 
 import { apiError } from "@/lib/api/errors";
 import { validateApiKey } from "@/lib/api/auth";
-import {
-  BILLING_CONFIG,
-  calculateUsageFee,
-  createBillingRecord,
-} from "@/lib/billing";
 import { getExecutionRecord } from "@/lib/execution/repository";
-import { createPlatformFeeRecord } from "@/lib/fees/ledger";
-import { APRAXUS_FEE_CONFIG } from "@/lib/web3/assets/registry";
 import { getAgent } from "@/lib/agents/registry";
-import { recordPolicySpend } from "@/lib/policy/accounting";
-import {
-  markExecutionSettled,
-  markExecutionSubmitted,
-} from "@/lib/execution/lifecycle";
+import { markExecutionSubmitted } from "@/lib/execution/lifecycle";
 import { getApraxusAsset } from "@/lib/web3/assets/registry";
+import { settleExecution } from "@/lib/execution/settle";
 import { getApraxusPublicClient } from "@/lib/web3/public-clients";
 import { verifyExecutionTransaction } from "@/lib/execution/verify";
 
@@ -168,6 +158,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let settlementRecord = record;
+
     if (record.status === "pending") {
       const submitted = markExecutionSubmitted(
         record.requestId,
@@ -181,89 +173,23 @@ export async function POST(request: NextRequest) {
           "UPDATE_FAILED"
         );
       }
+
+      settlementRecord = submitted;
     }
 
-    const updated = markExecutionSettled(record.requestId, {
+    const settlement = settleExecution(settlementRecord, {
       transactionHash: verified.transactionHash as `0x${string}`,
       status: verified.status,
       blockNumber: verified.blockNumber,
+      executionDecimals,
     });
-
-    if (!updated) {
-      return apiError(
-        "Unable to update execution record",
-        409,
-        "UPDATE_FAILED"
-      );
-    }
-
-    if (
-      updated.status === "confirmed" &&
-      record.assetId.startsWith("apxs:")
-    ) {
-      recordPolicySpend(record.agentId, Number(record.amount));
-    }
-
-    const platformFee =
-      updated.status === "confirmed"
-        ? createPlatformFeeRecord({
-            executionId: record.requestId,
-            agentId: record.agentId,
-            chainId: record.chainId,
-            assetId: record.assetId,
-            assetKind: record.assetKind,
-            tokenAddress: record.tokenAddress,
-            amount: parseUnits(record.amount, executionDecimals),
-            basisPoints: APRAXUS_FEE_CONFIG.basisPoints,
-          })
-        : null;
-
-    const billingFee = calculateUsageFee({
-      amount: Number(record.amount),
-      config: BILLING_CONFIG.usageFee,
-    });
-
-    const agent = getAgent(record.agentId);
-
-    if (
-      updated.status === "confirmed" &&
-      billingFee.applicable &&
-      (!agent || !agent.billingCustomerId)
-    ) {
-      return apiError(
-        "Agent is not linked to a billing customer",
-        409,
-        "BILLING_CUSTOMER_NOT_LINKED"
-      );
-    }
-
-    const billingRecord =
-      updated.status === "confirmed" &&
-      billingFee.applicable &&
-      agent?.billingCustomerId
-        ? createBillingRecord({
-            customerId: agent.billingCustomerId,
-            source: "execution",
-            amount: billingFee.fee,
-            currency: billingFee.currency,
-            referenceId: record.requestId,
-            status: "pending",
-          })
-        : null;
 
     return NextResponse.json({
       success: true,
-      record: updated,
-      billing: billingRecord
-        ? {
-            billingId: billingRecord.billingId,
-            status: billingRecord.status,
-            amount: billingRecord.amount,
-            currency: billingRecord.currency,
-          }
-        : {
-            status: "not_charged",
-          },
+      record: settlement.execution,
+      billing: settlement.billing ?? {
+        status: "not_charged",
+      },
     });
   } catch {
     return apiError(

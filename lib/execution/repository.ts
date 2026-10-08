@@ -1,6 +1,6 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { executions } from "@/lib/db/schema";
+import { agents, executions } from "@/lib/db/schema";
 import type { ExecutionRecord, ExecutionStatus } from "@/lib/execution/types";
 
 function toExecutionRecord(
@@ -163,6 +163,34 @@ export function listExecutionRecords(
   return db
     .select()
     .from(executions)
+    .orderBy(desc(executions.createdAt))
+    .limit(limit)
+    .offset(offset)
+    .all()
+    .map(toExecutionRecord);
+}
+
+export function listExecutionRecordsByDeveloper(
+  developerId: string,
+  limit = 20,
+  offset = 0,
+): ExecutionRecord[] {
+  const developerAgents = db
+    .select({ agentId: agents.agentId })
+    .from(agents)
+    .where(eq(agents.developerId, developerId))
+    .all();
+
+  const agentIds = developerAgents.map((agent) => agent.agentId);
+
+  if (agentIds.length === 0) {
+    return [];
+  }
+
+  return db
+    .select()
+    .from(executions)
+    .where(inArray(executions.agentId, agentIds))
     .orderBy(desc(executions.createdAt))
     .limit(limit)
     .offset(offset)

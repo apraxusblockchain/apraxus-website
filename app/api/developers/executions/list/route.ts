@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { listExecutionRecords } from "@/lib/execution/repository";
+import { getDeveloperFromRequest } from "@/lib/developers/session";
+import { listExecutionRecordsByDeveloper } from "@/lib/execution/repository";
 
 export async function GET(request: NextRequest) {
+  const developer = getDeveloperFromRequest(request);
+
+  if (!developer) {
+    return NextResponse.json(
+      { success: false, error: "Developer session required" },
+      { status: 401 },
+    );
+  }
+
   const { searchParams } = new URL(request.url);
 
   const limitParam = Number(searchParams.get("limit") ?? "20");
@@ -16,7 +26,7 @@ export async function GET(request: NextRequest) {
     ? Math.max(Math.floor(offsetParam), 0)
     : 0;
 
-  const records = listExecutionRecords(limit + 1, offset);
+  const records = listExecutionRecordsByDeveloper(developer.developerId, limit + 1, offset);
   const hasMore = records.length > limit;
   const pageRecords = records.slice(0, limit);
 

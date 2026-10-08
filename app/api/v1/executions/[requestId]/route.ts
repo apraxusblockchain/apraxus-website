@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { validateApiKey } from "@/lib/api/auth";
 import { apiError } from "@/lib/api/errors";
 import { getExecutionRecord } from "@/lib/execution/repository";
+import { getAgent } from "@/lib/agents/registry";
 
 type RouteContext = {
   params: Promise<{ requestId: string }>;
@@ -25,6 +26,19 @@ export async function GET(
   const record = getExecutionRecord(requestId);
 
   if (!record) {
+    return apiError(
+      "Execution record not found",
+      404,
+      "NOT_FOUND"
+    );
+  }
+
+  const agent = getAgent(
+    record.agentId,
+    auth.developerId ?? undefined,
+  );
+
+  if (!agent) {
     return apiError(
       "Execution record not found",
       404,

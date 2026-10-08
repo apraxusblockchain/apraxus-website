@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getDeveloperFromRequest } from "@/lib/developers/session";
+import { getAgent } from "@/lib/agents/registry";
 
 import { apiError } from "@/lib/api/errors";
 import { getExecutionRecord } from "@/lib/execution/repository";
@@ -6,6 +8,16 @@ import { markExecutionFailed } from "@/lib/execution/lifecycle";
 
 export async function POST(request: NextRequest) {
   try {
+    const developer = getDeveloperFromRequest(request);
+
+    if (!developer) {
+      return apiError(
+        "Developer session required",
+        401,
+        "UNAUTHORIZED"
+      );
+    }
+
     const body = await request.json();
     const { requestId } = body;
 
@@ -20,6 +32,16 @@ export async function POST(request: NextRequest) {
     const record = getExecutionRecord(requestId.trim());
 
     if (!record) {
+      return apiError(
+        "Execution record not found",
+        404,
+        "NOT_FOUND"
+      );
+    }
+
+    const agent = getAgent(record.agentId, developer.developerId);
+
+    if (!agent) {
       return apiError(
         "Execution record not found",
         404,
