@@ -39,7 +39,7 @@ declare global {
   }
 }
 
-export function AgentPaymentConsole({ agentId }: { agentId: string }) {
+export function AgentPaymentConsole({ agentId, agentName = "Apraxus Agent" }: { agentId: string; agentName?: string }) {
   const chainId = useChainId();
   const { switchChainAsync } = useSwitchChain();
 
@@ -532,7 +532,7 @@ const {
               </div>
 
               <div className="mt-1 font-mono text-sm">
-                Agent-001
+                {agentName || "Loading agent..."}
               </div>
 
               <div className="mt-2 text-xs text-emerald-400">

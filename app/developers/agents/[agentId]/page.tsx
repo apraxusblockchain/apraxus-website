@@ -701,7 +701,7 @@ export default function AgentDetailPage({
         </div>
 
         <section className="mt-8">
-          <AgentPaymentConsole agentId={agentId} />
+          <AgentPaymentConsole agentId={agentId} agentName={agent?.name ?? ""} />
         </section>
 
         <section className="mt-4 rounded-2xl border border-white/10 p-6">
