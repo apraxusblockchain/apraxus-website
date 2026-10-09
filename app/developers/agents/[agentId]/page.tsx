@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { APRAXUS_NETWORKS } from "@/lib/web3/network-registry";
 import { APRAXUS_ASSETS } from "@/lib/web3/assets/registry";
+import { AgentPaymentConsole } from "@/components/ui/AgentPaymentConsole";
 
 type Agent = {
   agentId: string;
@@ -643,55 +644,54 @@ export default function AgentDetailPage({
 
             <div className="mt-6">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">Execution history</p>
-                <span className="text-xs text-white/30">
-                  {executionRecords.length} record
-                  {executionRecords.length === 1 ? "" : "s"}
-                </span>
+                <div>
+                  <p className="text-sm font-medium">Recent activity</p>
+                  <p className="mt-1 text-xs text-white/35">
+                    Latest execution activity for this agent.
+                  </p>
+                </div>
+
+                <a
+                  href="/developers/transactions"
+                  className="text-xs text-white/50 transition hover:text-white"
+                >
+                  View all →
+                </a>
               </div>
 
               {executionLoading ? (
                 <p className="mt-4 text-sm text-white/35">
-                  Loading execution history…
+                  Loading recent activity…
                 </p>
               ) : executionRecords.length === 0 ? (
                 <p className="mt-4 text-sm text-white/35">
-                  No execution intents yet.
+                  No execution activity yet.
                 </p>
               ) : (
-                <div className="mt-4 space-y-3">
-                  {executionRecords.map((record) => (
+                <div className="mt-4 space-y-2">
+                  {executionRecords.slice(0, 3).map((record) => (
                     <div
                       key={record.requestId}
-                      className="rounded-xl border border-white/10 bg-black/30 p-4"
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-4 py-3"
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <span className="font-mono text-xs text-white/55">
-                          {record.assetId}
-                        </span>
-                        <span className="rounded-full border border-white/10 px-2 py-1 text-[10px] uppercase tracking-[0.15em] text-white/40">
-                          {record.status}
-                        </span>
-                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-xs text-white/55">
+                            {record.assetId}
+                          </span>
+                          <span className="text-sm text-white/75">
+                            {record.amount}
+                          </span>
+                        </div>
 
-                      <div className="mt-3 grid gap-2 text-xs text-white/35 md:grid-cols-2">
-                        <span>Amount: {record.amount}</span>
-                        <span className="break-all">
-                          Recipient: {record.recipient}
-                        </span>
-                        <span className="break-all">
-                          Request: {record.requestId}
-                        </span>
-                        <span>
+                        <p className="mt-1 text-xs text-white/30">
                           {new Date(record.createdAt).toLocaleString()}
-                        </span>
+                        </p>
                       </div>
 
-                      {record.transactionHash && (
-                        <p className="mt-3 break-all font-mono text-xs text-white/30">
-                          Tx: {record.transactionHash}
-                        </p>
-                      )}
+                      <span className="rounded-full border border-white/10 px-2 py-1 text-[10px] uppercase tracking-[0.15em] text-white/45">
+                        {record.status}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -699,6 +699,10 @@ export default function AgentDetailPage({
             </div>
           </section>
         </div>
+
+        <section className="mt-8">
+          <AgentPaymentConsole agentId={agentId} />
+        </section>
 
         <section className="mt-4 rounded-2xl border border-white/10 p-6">
           <p className="text-xs uppercase tracking-[0.2em] text-white/30">

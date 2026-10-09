@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Logo } from './Logo';
 import { arbitrumSepolia, bscTestnet } from 'viem/chains';
 import { APRAXUS_NETWORKS, type ApraxusNetworkKey } from '@/lib/web3/network-registry';
 import { useChainId, useSwitchChain } from 'wagmi';
 import {
+  ArrowLeft,
   ArrowUpRight,
   BookOpen,
   Bot,
@@ -69,6 +70,7 @@ export const Navbar = () => {
   const { switchChain } = useSwitchChain();
   const chainId = useChainId();
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     if (chainId === arbitrumSepolia.id) {
@@ -132,7 +134,27 @@ export const Navbar = () => {
         }`}
       >
         <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Logo size="md" withWordmark />
+          <div className="flex items-center gap-3">
+            <Logo size="md" withWordmark />
+
+            {pathname !== '/' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.history.length > 1) {
+                    router.back();
+                  } else {
+                    router.push('/');
+                  }
+                }}
+                className="hidden items-center gap-1.5 rounded-full border border-white/[0.09] bg-white/[0.03] px-3 py-2 text-xs text-zinc-400 transition hover:border-white/[0.18] hover:bg-white/[0.06] hover:text-white sm:inline-flex"
+                aria-label="Go back"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Back
+              </button>
+            )}
+          </div>
 
           <nav className="hidden items-center gap-1 lg:flex">
             <Link

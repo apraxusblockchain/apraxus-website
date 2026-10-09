@@ -152,8 +152,8 @@ export function AgentPaymentConsole({ agentId }: { agentId: string }) {
     setReceiptBlockNumber("");
   }
 
-  async function markExecutionFailed() {
-    if (!requestId) return;
+  async function markExecutionFailed(executionRequestId = requestId) {
+    if (!executionRequestId) return;
 
     try {
       await fetch("/api/developers/executions/fail", {
@@ -161,7 +161,7 @@ export function AgentPaymentConsole({ agentId }: { agentId: string }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ requestId }),
+        body: JSON.stringify({ requestId: executionRequestId }),
       });
     } catch (failureError) {
       console.error("Unable to mark execution as failed:", failureError);
@@ -271,25 +271,49 @@ export function AgentPaymentConsole({ agentId }: { agentId: string }) {
       setWalletAddress(account);
 
       /*
-       * Bind the connected public wallet to the development agent.
-       * The server-side proxy keeps the API key off the client.
+       * Reuse the wallet already bound to this agent.
+       * Only bind the connected wallet when the agent has no wallet yet.
        */
-      const walletBindingResponse = await fetch(
+      const existingWalletResponse = await fetch(
         `/api/developers/agents/${encodeURIComponent(agentId)}/wallet`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            walletAddress: account,
-            chainId: currentChainId,
-          }),
-        }
+        { cache: "no-store" }
       );
 
-      if (!walletBindingResponse.ok) {
-        setError("Unable to bind the connected wallet to this agent.");
+      const existingWalletData = await existingWalletResponse.json();
+
+      if (existingWalletResponse.ok && existingWalletData?.wallet) {
+        const boundWallet = existingWalletData.wallet;
+
+        if (
+          boundWallet.walletAddress.toLowerCase() !== account.toLowerCase() ||
+          boundWallet.chainId !== currentChainId
+        ) {
+          setError(
+            "The connected wallet does not match the wallet already bound to this agent."
+          );
+          return;
+        }
+      } else if (existingWalletResponse.status === 404) {
+        const walletBindingResponse = await fetch(
+          `/api/developers/agents/${encodeURIComponent(agentId)}/wallet`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              walletAddress: account,
+              chainId: currentChainId,
+            }),
+          }
+        );
+
+        if (!walletBindingResponse.ok) {
+          setError("Unable to bind the connected wallet to this agent.");
+          return;
+        }
+      } else {
+        setError("Unable to verify the wallet bound to this agent.");
         return;
       }
 
@@ -372,7 +396,8 @@ export function AgentPaymentConsole({ agentId }: { agentId: string }) {
         );
       }
 
-      setRequestId(intentData.requestId);
+      const executionRequestId = intentData.requestId;
+      setRequestId(executionRequestId);
 
       /*
        * REAL ERC-20 TRANSFER
@@ -419,7 +444,7 @@ const {
        * Synchronize the verified on-chain result with
        * the execution record created for this request.
        */
-      if (requestId) {
+      if (executionRequestId) {
         const syncResponse = await fetch(
           "/api/developers/executions/sync",
           {
@@ -428,7 +453,7 @@ const {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              requestId,
+              requestId: executionRequestId,
               transactionHash: hash,
             }),
           }

@@ -15,6 +15,18 @@ export default function DeveloperDashboardPage() {
       action: "Manage Keys",
     },
     {
+      title: "Agent Management",
+      description: "Create and manage autonomous agents, wallets, policies and execution controls.",
+      href: "/developers/agents",
+      action: "Manage Agents",
+    },
+    {
+      title: "Transactions",
+      description: "Review execution requests, settlement status and on-chain transaction records.",
+      href: "/developers/transactions",
+      action: "View Transactions",
+    },
+    {
       title: "Developer Sandbox",
       description: "Simulate payment, quote and execution flows without a blockchain transaction.",
       href: "/developers/sandbox",
