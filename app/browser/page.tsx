@@ -344,7 +344,7 @@ export default function BrowserPage() {
 
             <div className="flex min-w-0 flex-col gap-3 lg:min-w-[230px]">
               <a
-                href="https://github.com/apraxusblockchain/apraxus-browser/releases/download/v1.0.0/Apraxus%20Browser-1.0.0-arm64.dmg"
+                href="https://github.com/apraxusblockchain/apraxus-browser/releases/download/v1.0.0/Apraxus.Browser-1.0.0-arm64.dmg"
                 className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-violet-100"
               >
                 <ArrowDownToLine className="h-4 w-4" />
