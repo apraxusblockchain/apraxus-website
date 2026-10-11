@@ -16,6 +16,7 @@ import {
   Code2,
   CreditCard,
   GitBranch,
+  Globe2,
   Layers3,
   Menu,
   Network,
@@ -48,6 +49,7 @@ const NAV_GROUPS = [
       { name: 'Developers', href: '/developers', desc: 'Build with Apraxus', icon: Code2 },
       { name: 'Documentation', href: '/docs', desc: 'Protocol and developer references', icon: BookOpen },
       { name: 'Dashboard', href: '/developers/dashboard', desc: 'Development execution console', icon: Network },
+      { name: 'Apraxus Browser', href: '/browser', desc: 'Explore the desktop browser', icon: Globe2 },
     ],
   },
   {
@@ -183,6 +185,15 @@ export const Navbar = () => {
               className="rounded-full px-4 py-2 text-sm text-zinc-400 transition hover:bg-white/[0.05] hover:text-white"
             >
               Whitepaper
+            </Link>
+
+            <Link
+              href="/browser"
+              className={`rounded-full px-4 py-2 text-sm transition hover:bg-white/[0.05] hover:text-white ${
+                pathname === '/browser' ? 'bg-violet-400/10 text-violet-200' : 'text-zinc-400'
+              }`}
+            >
+              Browser
             </Link>
           </nav>
 

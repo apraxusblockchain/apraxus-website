@@ -36,6 +36,7 @@ export const Footer = () => {
               <li><Link href="/roadmap" className="hover:text-white transition-colors">Engineering Milestone Log</Link></li>
               <li><Link href="/security" className="hover:text-white transition-colors">Zero-Trust Threat Model</Link></li>
               <li><Link href="/ecosystem" className="hover:text-white transition-colors">Ecosystem Directory</Link></li>
+              <li><Link href="/browser" className="hover:text-white transition-colors">Apraxus Browser</Link></li>
             </ul>
           </div>
 
