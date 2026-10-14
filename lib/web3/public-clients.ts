@@ -1,5 +1,5 @@
 import { createPublicClient, http, type PublicClient } from "viem";
-import { arbitrumSepolia, bscTestnet } from "viem/chains";
+import { arbitrumSepolia, bscTestnet, robinhoodTestnet } from "viem/chains";
 
 const PUBLIC_CLIENTS: Record<number, PublicClient> = {
   421614: createPublicClient({
@@ -8,6 +8,10 @@ const PUBLIC_CLIENTS: Record<number, PublicClient> = {
   }),
   97: createPublicClient({
     chain: bscTestnet,
+    transport: http(),
+  }),
+  [robinhoodTestnet.id]: createPublicClient({
+    chain: robinhoodTestnet,
     transport: http(),
   }),
 };

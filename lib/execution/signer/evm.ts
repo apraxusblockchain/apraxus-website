@@ -3,7 +3,7 @@ import {
   createWalletClient,
   http,
 } from "viem";
-import { arbitrumSepolia, bscTestnet } from "viem/chains";
+import { arbitrumSepolia, bscTestnet, robinhoodTestnet } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 
 import { getExecutionSignerConfig } from "./config";
@@ -38,7 +38,9 @@ export function createEvmExecutionSigner(agentId: string): ExecutionSigner | nul
       ? arbitrumSepolia
       : config.chainId === 97
         ? bscTestnet
-        : null;
+        : config.chainId === robinhoodTestnet.id
+          ? robinhoodTestnet
+          : null;
 
   if (!chain) {
     throw new Error("Unsupported execution signer chain");
@@ -62,6 +64,10 @@ export function createEvmExecutionSigner(agentId: string): ExecutionSigner | nul
     chainId: config.chainId,
 
     async signAndSend(input) {
+      if (config.chainId === robinhoodTestnet.id && input.assetKind === "token") {
+        throw new Error("Token execution is not configured on Robinhood Chain Testnet");
+      }
+
       if (input.assetKind === "token") {
         if (!input.tokenAddress) {
           throw new Error("Token address is required for token execution");

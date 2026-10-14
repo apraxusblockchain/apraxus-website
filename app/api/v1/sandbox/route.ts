@@ -188,7 +188,11 @@ export async function POST(request: NextRequest) {
       status: "simulated",
       network: requestedChainId === 97
         ? "bnb-testnet"
-        : "arbitrum-sepolia",
+        : requestedChainId === 46630
+          ? "robinhood-testnet"
+          : requestedChainId === 421614
+            ? "arbitrum-sepolia"
+            : "unsupported",
       agentId: agent.agentId,
       token: asset.symbol,
       amount,
@@ -219,7 +223,11 @@ export async function POST(request: NextRequest) {
         network:
           requestedChainId === 97
             ? "BNB Testnet"
-            : "Arbitrum Sepolia",
+            : requestedChainId === 46630
+              ? "Robinhood Chain Testnet"
+              : requestedChainId === 421614
+                ? "Arbitrum Sepolia"
+                : "Unsupported network",
       },
     });
   } catch {

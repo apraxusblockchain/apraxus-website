@@ -1,4 +1,4 @@
-import { arbitrumSepolia, bscTestnet } from "viem/chains";
+import { arbitrumSepolia, bscTestnet, robinhoodTestnet } from "viem/chains";
 
 export const APXS_CHAINS = {
   arbitrumSepolia: {
@@ -27,5 +27,11 @@ export const APXS_CHAIN_META = {
     shortName: "BNB",
     chainId: 97,
     explorer: "https://testnet.bscscan.com",
+  },
+  robinhoodTestnet: {
+    name: "Robinhood Chain Testnet",
+    shortName: "Robinhood",
+    chainId: robinhoodTestnet.id,
+    explorer: "https://explorer.testnet.chain.robinhood.com",
   },
 } as const;

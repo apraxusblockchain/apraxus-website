@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Logo } from './Logo';
-import { arbitrumSepolia, bscTestnet } from 'viem/chains';
+import { bscTestnet, robinhoodTestnet } from 'viem/chains';
 import { APRAXUS_NETWORKS, type ApraxusNetworkKey } from '@/lib/web3/network-registry';
 import { useChainId, useSwitchChain } from 'wagmi';
 import {
@@ -66,21 +66,16 @@ export const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [networkOpen, setNetworkOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [selectedNetwork, setSelectedNetwork] =
-    useState<ApraxusNetworkKey>('arbitrumSepolia');
-
   const { switchChain } = useSwitchChain();
   const chainId = useChainId();
+  const selectedNetwork: ApraxusNetworkKey =
+    chainId === bscTestnet.id
+      ? 'bnbTestnet'
+      : chainId === robinhoodTestnet.id
+        ? 'robinhoodTestnet'
+        : 'arbitrumSepolia';
   const pathname = usePathname();
   const router = useRouter();
-
-  useEffect(() => {
-    if (chainId === arbitrumSepolia.id) {
-      setSelectedNetwork('arbitrumSepolia');
-    } else if (chainId === bscTestnet.id) {
-      setSelectedNetwork('bnbTestnet');
-    }
-  }, [chainId]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 24);
@@ -88,11 +83,6 @@ export const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  useEffect(() => {
-    setMenuOpen(false);
-    setNetworkOpen(false);
-  }, [pathname]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -106,25 +96,7 @@ export const Navbar = () => {
   const activeNetwork = APRAXUS_NETWORKS[selectedNetwork];
   const networkName = activeNetwork.name;
 
-  async function toggleNetwork() {
-    const nextNetwork =
-      selectedNetwork === 'arbitrumSepolia'
-        ? 'bnbTestnet'
-        : 'arbitrumSepolia';
 
-    try {
-      await switchChain({
-        chainId:
-          nextNetwork === 'arbitrumSepolia'
-            ? arbitrumSepolia.id
-            : bscTestnet.id,
-      });
-
-      setSelectedNetwork(nextNetwork);
-    } catch {
-      // Preserve current network selection when wallet rejects the switch.
-    }
-  }
 
   return (
     <>
@@ -245,7 +217,6 @@ export const Navbar = () => {
                             if (key !== selectedNetwork) {
                               try {
                                 await switchChain({ chainId: network.chainId });
-                                setSelectedNetwork(key);
                               } catch {
                                 return;
                               }
@@ -278,19 +249,26 @@ export const Navbar = () => {
                         </button>
 
                         <div className="mt-3 flex items-center justify-between border-t border-white/[0.06] pt-2">
-                          <span className="font-mono text-[9px] text-zinc-600">
-                            APXS {network.apxs.slice(0, 6)}…{network.apxs.slice(-4)}
-                          </span>
-
-                          <a
-                            href={network.apxsExplorer}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(event) => event.stopPropagation()}
-                            className="font-mono text-[9px] uppercase tracking-wider text-zinc-500 transition hover:text-white"
-                          >
-                            Explorer ↗
-                          </a>
+                          {network.apxs && network.apxsExplorer ? (
+                            <>
+                              <span className="font-mono text-[9px] text-zinc-600">
+                                APXS {network.apxs.slice(0, 6)}…{network.apxs.slice(-4)}
+                              </span>
+                              <a
+                                href={network.apxsExplorer}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(event) => event.stopPropagation()}
+                                className="font-mono text-[9px] uppercase tracking-wider text-zinc-500 transition hover:text-white"
+                              >
+                                Explorer ↗
+                              </a>
+                            </>
+                          ) : (
+                            <span className="font-mono text-[9px] text-zinc-500">
+                              Native ETH · APXS not configured
+                            </span>
+                          )}
                         </div>
                       </div>
                     );
@@ -425,7 +403,6 @@ export const Navbar = () => {
                             if (key !== selectedNetwork) {
                               try {
                                 await switchChain({ chainId: network.chainId });
-                                setSelectedNetwork(key);
                               } catch {
                                 return;
                               }

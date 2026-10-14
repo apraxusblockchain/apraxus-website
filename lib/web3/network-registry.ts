@@ -1,6 +1,6 @@
 import type { Address } from 'viem';
 
-export type ApraxusNetworkKey = 'arbitrumSepolia' | 'bnbTestnet';
+export type ApraxusNetworkKey = 'arbitrumSepolia' | 'bnbTestnet' | 'robinhoodTestnet';
 
 export type ApraxusNetworkConfig = {
   key: ApraxusNetworkKey;
@@ -9,9 +9,9 @@ export type ApraxusNetworkConfig = {
   chainId: number;
   environment: 'TESTNET';
   nativeCurrency: string;
-  apxs: Address;
+  apxs?: Address;
   explorer: string;
-  apxsExplorer: string;
+  apxsExplorer?: string;
   liquidity?: {
     weth: Address;
     quoter?: Address;
@@ -65,6 +65,16 @@ export const APRAXUS_NETWORKS: Record<
     explorer: 'https://testnet.bscscan.com',
     apxsExplorer:
       'https://testnet.bscscan.com/token/0xEf55E41d5F5473BECAC8f7116654eB3CD571447e',
+  },
+
+  robinhoodTestnet: {
+    key: 'robinhoodTestnet',
+    name: 'Robinhood Chain Testnet',
+    shortName: 'ROBINHOOD TESTNET',
+    chainId: 46630,
+    environment: 'TESTNET',
+    nativeCurrency: 'ETH',
+    explorer: 'https://explorer.testnet.chain.robinhood.com',
   },
 };
 

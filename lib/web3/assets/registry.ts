@@ -39,6 +39,15 @@ export const APRAXUS_ASSETS: Record<string, ApraxusAsset> = {
     decimals: 18,
     enabled: true,
   },
+  "eth:46630": {
+    id: "eth:46630",
+    symbol: "ETH",
+    name: "Ether",
+    kind: "native",
+    chainId: 46630,
+    decimals: 18,
+    enabled: true,
+  },
 };
 
 export const APRAXUS_FEE_CONFIG = {

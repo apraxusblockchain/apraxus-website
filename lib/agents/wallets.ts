@@ -50,7 +50,12 @@ export function bindAgentWallet(
     return null;
   }
 
-  if (!Number.isInteger(input.chainId) || input.chainId <= 0) {
+  const supportedChainIds = new Set([421614, 97, 46630]);
+
+  if (
+    !Number.isInteger(input.chainId) ||
+    !supportedChainIds.has(input.chainId)
+  ) {
     return null;
   }
 

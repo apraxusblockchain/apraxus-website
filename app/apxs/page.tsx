@@ -120,33 +120,40 @@ export default function ApxsPage() {
                     </p>
                   </div>
 
-                  <span className="rounded-full border border-purple-400/15 bg-purple-400/[0.04] px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider text-purple-300">
-                    APXS
+                  <span className="rounded-full border border-white/10 px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider text-zinc-400">
+                    {network.apxs ? "APXS DEPLOYED" : "NATIVE ETH ONLY"}
                   </span>
                 </div>
 
-                <div className="mt-7 rounded-xl border border-white/[0.07] bg-black/20 p-4">
-                  <p className="text-[10px] font-mono uppercase tracking-[0.16em] text-zinc-600">
-                    Contract Address
-                  </p>
-                  <p className="mt-2 break-all font-mono text-xs leading-6 text-zinc-300">
-                    {network.apxs}
-                  </p>
-                </div>
+                {network.apxs && network.apxsExplorer ? (
+                  <>
+                    <div className="mt-7 rounded-xl border border-white/[0.07] bg-black/20 p-4">
+                      <p className="text-[10px] font-mono uppercase tracking-[0.16em] text-zinc-600">
+                        Contract Address
+                      </p>
+                      <p className="mt-2 break-all font-mono text-xs leading-6 text-zinc-300">
+                        {network.apxs}
+                      </p>
+                    </div>
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <CopyAddressButton address={network.apxs} />
-
-                  <a
-                    href={network.apxsExplorer}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3.5 py-2 text-xs font-medium text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.05] hover:text-white"
-                  >
-                    Explorer
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <CopyAddressButton address={network.apxs} />
+                      <a
+                        href={network.apxsExplorer}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3.5 py-2 text-xs font-medium text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.05] hover:text-white"
+                      >
+                        Explorer
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
+                  </>
+                ) : (
+                  <p className="mt-7 rounded-xl border border-white/[0.07] bg-black/20 p-4 text-sm leading-6 text-zinc-400">
+                    APXS deployment is not configured on this network. Native ETH testnet support only.
+                  </p>
+                )}
               </div>
             ))}
           </div>

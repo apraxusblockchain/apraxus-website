@@ -23,7 +23,7 @@ export type CreateExecutionIntentInput = {
 
 export type CreateExecutionIntentResult = {
   execution: ExecutionRecord;
-  network: "arbitrum-sepolia" | "bnb-testnet";
+  network: "arbitrum-sepolia" | "bnb-testnet" | "robinhood-testnet";
   existing: boolean;
 };
 
@@ -49,9 +49,19 @@ export async function createExecutionIntent(
     throw new Error("Recipient must be a valid EVM address");
   }
 
+  const networkByChainId = {
+    421614: "arbitrum-sepolia",
+    97: "bnb-testnet",
+    46630: "robinhood-testnet",
+  } as const;
+
+  if (!(input.chainId in networkByChainId)) {
+    throw new Error("Unsupported execution chain");
+  }
+
   const asset = getApraxusAssetBySymbol(token, input.chainId);
 
-  if (!asset || !asset.enabled) {
+  if (!asset || !asset.enabled || asset.chainId !== input.chainId) {
     throw new Error("Asset is not supported on the requested chain");
   }
 
@@ -128,7 +138,7 @@ export async function createExecutionIntent(
 
     return {
       execution: existingExecution,
-      network: input.chainId === 97 ? "bnb-testnet" : "arbitrum-sepolia",
+      network: networkByChainId[input.chainId as keyof typeof networkByChainId],
       existing: true,
     };
   }
@@ -152,7 +162,7 @@ export async function createExecutionIntent(
 
   return {
     execution,
-    network: input.chainId === 97 ? "bnb-testnet" : "arbitrum-sepolia",
+    network: networkByChainId[input.chainId as keyof typeof networkByChainId],
     existing: false,
   };
 }

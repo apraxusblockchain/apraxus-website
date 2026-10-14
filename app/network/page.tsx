@@ -248,17 +248,23 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
   };
 
   useEffect(() => {
-  loadNetwork();
-  loadBalance(DEFAULT_ADDRESS);
-  loadExplorerBlocks();
+    const initialLoad = () => {
+      void loadNetwork();
+      void loadBalance(DEFAULT_ADDRESS);
+      void loadExplorerBlocks();
+    };
 
-  const interval = setInterval(() => {
-    loadNetwork();
-    loadExplorerBlocks();
-  }, 10000);
+    const interval = window.setTimeout(initialLoad, 0);
+    const refreshInterval = window.setInterval(() => {
+      void loadNetwork();
+      void loadExplorerBlocks();
+    }, 10000);
 
-  return () => clearInterval(interval);
-}, []);
+    return () => {
+      window.clearTimeout(interval);
+      window.clearInterval(refreshInterval);
+    };
+  }, []);
 
   const formatSupply = (value: number) => {
     return new Intl.NumberFormat('en-US').format(value / 100000000);
@@ -1227,44 +1233,50 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
                   </div>
 
                   <span className="rounded-full border border-white/[0.08] px-2.5 py-1 font-mono text-[9px] uppercase tracking-wider text-zinc-500">
-                    APXS
+                    {network.apxs ? "APXS DEPLOYED" : "NATIVE ETH ONLY"}
                   </span>
                 </div>
 
-                <div className="mt-5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-zinc-600">
-                      Contract address
-                    </span>
-                    <span className="font-mono text-[9px] text-zinc-600">
-                      8 decimals
-                    </span>
-                  </div>
+                {network.apxs && network.apxsExplorer ? (
+                  <>
+                    <div className="mt-5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+                      <div className="mb-2 flex items-center justify-between gap-3">
+                        <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-zinc-600">
+                          Contract address
+                        </span>
+                        <span className="font-mono text-[9px] text-zinc-600">
+                          8 decimals
+                        </span>
+                      </div>
+                      <code className="block break-all font-mono text-xs leading-6 text-zinc-300">
+                        {network.apxs}
+                      </code>
+                    </div>
 
-                  <code className="block break-all font-mono text-xs leading-6 text-zinc-300">
-                    {network.apxs}
-                  </code>
-                </div>
-
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => navigator.clipboard.writeText(network.apxs)}
-                    className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-zinc-400 transition hover:border-white/[0.16] hover:bg-white/[0.05] hover:text-white"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    Copy address
-                  </button>
-
-                  <a
-                    href={network.apxsExplorer}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-zinc-400 transition hover:border-white/[0.16] hover:bg-white/[0.05] hover:text-white"
-                  >
-                    View contract ↗
-                  </a>
-                </div>
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText(network.apxs!)}
+                        className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-zinc-400 transition hover:border-white/[0.16] hover:bg-white/[0.05] hover:text-white"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Copy address
+                      </button>
+                      <a
+                        href={network.apxsExplorer}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-zinc-400 transition hover:border-white/[0.16] hover:bg-white/[0.05] hover:text-white"
+                      >
+                        View contract ↗
+                      </a>
+                    </div>
+                  </>
+                ) : (
+                  <p className="mt-5 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-sm leading-6 text-zinc-400">
+                    APXS is not deployed/configured on this network. Native ETH testnet support only.
+                  </p>
+                )}
               </div>
             ))}
           </div>

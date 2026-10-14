@@ -6,13 +6,13 @@ import {
   metaMask,
   walletConnect,
 } from "wagmi/connectors";
-import { arbitrumSepolia, bscTestnet } from "wagmi/chains";
+import { arbitrumSepolia, bscTestnet, robinhoodTestnet } from "wagmi/chains";
 
 const projectId =
   process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
 
 export const config = createConfig({
-  chains: [arbitrumSepolia, bscTestnet],
+  chains: [arbitrumSepolia, bscTestnet, robinhoodTestnet],
 
   connectors: [
     metaMask(),
@@ -36,6 +36,7 @@ export const config = createConfig({
     [bscTestnet.id]: http(
       "https://data-seed-prebsc-1-s1.bnbchain.org:8545"
     ),
+    [robinhoodTestnet.id]: http(),
   },
 
   ssr: true,
