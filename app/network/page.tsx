@@ -33,8 +33,11 @@ type NetworkData = {
 
 type BalanceData = {
   address: string;
-  balance: number;
+  balance: number | string;
   symbol: string;
+  chainId?: number;
+  decimals?: number;
+  network?: string;
 };
 
 type ExplorerBlock = {
@@ -86,6 +89,7 @@ export default function NetworkPage() {
   const [error, setError] = useState(false);
 
   const [address, setAddress] = useState(DEFAULT_ADDRESS);
+  const [balanceChain, setBalanceChain] = useState<'apraxus' | 'robinhood'>('apraxus');
   const [balance, setBalance] = useState<BalanceData | null>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [balanceError, setBalanceError] = useState('');
@@ -218,12 +222,16 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
       setBalanceError('');
       setBalance(null);
 
-      const response = await fetch(
-        `/api/balance?address=${encodeURIComponent(trimmedAddress)}`,
-        {
-          cache: 'no-store',
-        }
-      );
+      const balanceUrl = new URL('/api/balance', window.location.origin);
+      balanceUrl.searchParams.set('address', trimmedAddress);
+
+      if (balanceChain === 'robinhood') {
+        balanceUrl.searchParams.set('chainId', '46630');
+      }
+
+      const response = await fetch(balanceUrl.toString(), {
+        cache: 'no-store',
+      });
 
       const result = await response.json();
 
@@ -276,6 +284,19 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
     }).format(value / 100000000);
   };
 
+  const formatWalletBalance = (value: number | string, symbol: string) => {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue)) return String(value);
+
+    if (symbol.toUpperCase() === 'ETH') {
+      return new Intl.NumberFormat('en-US', {
+        maximumFractionDigits: 8,
+      }).format(numericValue);
+    }
+
+    return formatAPXS(numericValue);
+  };
+
   const isOnline =
     !loading &&
     !error &&
@@ -288,6 +309,16 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
 
   const handleBalanceSearch = (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (balanceChain === 'robinhood') {
+      const evmAddressPattern = /^0x[a-fA-F0-9]{40}$/;
+      if (!evmAddressPattern.test(address.trim())) {
+        setBalance(null);
+        setBalanceError('Enter a valid 0x-prefixed EVM wallet address (42 characters).');
+        return;
+      }
+    }
+
     loadBalance(address);
   };
 
@@ -526,12 +557,11 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
               </div>
 
               <h2 className="text-2xl sm:text-3xl font-bold">
-                Check APXS Balance
+                Check Wallet Balance
               </h2>
 
               <p className="text-sm text-zinc-500 mt-2 max-w-2xl">
-                Query the live Apraxus Rust node for the balance of any
-                wallet address.
+                Check APXS on Apraxus or native ETH on Robinhood Chain Testnet.
               </p>
             </div>
 
@@ -545,6 +575,26 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
             onSubmit={handleBalanceSearch}
             className="flex flex-col lg:flex-row gap-3"
           >
+            <select
+              value={balanceChain}
+              onChange={(event) => {
+                const nextChain = event.target.value as 'apraxus' | 'robinhood';
+                setBalanceChain(nextChain);
+                setBalance(null);
+                setBalanceError('');
+                if (nextChain === 'apraxus' && address.startsWith('0x')) {
+                  setAddress(DEFAULT_ADDRESS);
+                } else if (nextChain === 'robinhood' && !address.startsWith('0x')) {
+                  setAddress('');
+                }
+              }}
+              className="h-12 rounded-xl border border-white/10 bg-[#09090b] px-4 text-sm text-white outline-none focus:border-[#7B5CFA]/60"
+              aria-label="Balance network"
+            >
+              <option value="apraxus">Apraxus · APXS</option>
+              <option value="robinhood">Robinhood Testnet · ETH</option>
+            </select>
+
             <div className="relative flex-1">
               <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
 
@@ -552,7 +602,7 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
                 type="text"
                 value={address}
                 onChange={(event) => setAddress(event.target.value)}
-                placeholder="Enter Apraxus wallet address..."
+                placeholder={balanceChain === "robinhood" ? "Enter EVM wallet address (0x...)" : "Enter Apraxus wallet address..."}
                 spellCheck={false}
                 className="w-full h-12 rounded-xl border border-white/10 bg-black/30 pl-11 pr-4 text-sm font-mono text-white placeholder:text-zinc-600 outline-none focus:border-[#7B5CFA]/60 focus:ring-1 focus:ring-[#7B5CFA]/30 transition"
               />
@@ -585,7 +635,7 @@ const [selectedBlockLoading, setSelectedBlockLoading] = useState(false);
                   </span>
 
                   <div className="text-3xl sm:text-4xl font-bold font-mono text-emerald-400 mt-2">
-                    {formatAPXS(balance.balance)} {balance.symbol}
+                    {formatWalletBalance(balance.balance, balance.symbol)} {balance.symbol}
                   </div>
                 </div>
 
